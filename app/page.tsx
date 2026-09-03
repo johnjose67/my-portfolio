@@ -1,4 +1,8 @@
-import FloatingImage from '@/components/FloatingImage';
+import Image from 'next/image';
+import GalleryTunnel from '@/components/GalleryTunnel';
+import ScatterText from '@/components/ScatterText';
+import CurvedFlipText from '@/components/CurvedFlipText';
+import CubeFlipText from '@/components/CubeFlipText';
 
 // Desktop-first build matching the Figma "My Portfolio" frame.
 // Mobile responsiveness is intentionally deferred — see the note at the
@@ -6,20 +10,48 @@ import FloatingImage from '@/components/FloatingImage';
 
 export default function Home() {
   return (
-    <main className="relative bg-white w-full min-h-screen overflow-hidden">
+    <main className="relative w-full min-h-screen overflow-hidden">
+      {/* Continuous background tunnel — fixed behind everything, no
+          pointer interaction, runs on its own indefinitely */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <GalleryTunnel
+          background="#FFFFFF"
+          lineColor="#000000"
+          lineOpacity={10}
+          speed={10}
+          characterVideoUrl="/videos/johnsitting.webm"
+          characterChromaKey={false}
+          characterWidth={0.4}
+          characterOffsetX={0.65}
+          characterVideoUrl2="/videos/johnstanding.webm"
+          characterChromaKey2={false}
+          characterWidth2={0.55}
+          characterOffsetX2={-0.65}
+          characterDelaySeconds2={10}
+          characterTrimSeconds2={8}
+        />
+      </div>
+
+      {/* All page content sits above the tunnel */}
+      <div className="relative z-10 w-full min-h-screen">
       {/* Top nav row */}
-      <p className="absolute left-[51px] top-[50px] text-black text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold">
-        Home
+      <p className="group absolute left-[51px] top-[50px]">
+        <CubeFlipText
+          text="Home"
+          frontColor="#000000"
+          bottomColor="#FC8EF1"
+          fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+        />
       </p>
 
-      {/* Bio block, top center */}
-      <p className="absolute left-1/2 -translate-x-1/2 top-[54px] w-[480px] text-black text-[20px] leading-[20px] tracking-[0.48px] uppercase text-left font-[family-name:var(--font-thermochrome)] font-semibold">
-        Hi, I am John. I&apos;m a passionate interaction designer dedicated to
-        crafting exceptional user experiences by empathizing with and
-        understanding people&apos;s perspectives. My expertise extends to
-        enhancing both the UX and UI of products, ensuring they are not only
-        user-friendly but visually appealing.
-      </p>
+      {/* Bio block, top center — words scatter away from the cursor when
+          it passes near, then spring back into place */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[54px] w-[480px]">
+        <ScatterText
+          text="Hi, I am John. I'm a passionate interaction designer dedicated to crafting exceptional user experiences by empathizing with and understanding people's perspectives. My expertise extends to enhancing both the UX and UI of products, ensuring they are not only user-friendly but visually appealing."
+          className="text-black text-[20px] leading-[20px] tracking-[0.48px] uppercase text-left font-[family-name:var(--font-thermochrome)] font-semibold"
+        />
+      </div>
 
       {/* Contact block, top right */}
       <div className="absolute right-[51px] top-[54px] text-black text-[20px] tracking-[0.48px] uppercase text-left whitespace-nowrap font-[family-name:var(--font-thermochrome)] font-semibold leading-[20px]">
@@ -28,77 +60,61 @@ export default function Home() {
         <p>johnjoro15@gmail.com</p>
       </div>
 
-      {/* Nav pills — Projects (left) / Gallery (right) */}
+      {/* Nav pills — Projects (left) / Gallery (right). Ellipse outline
+          stays static; the text itself curves and rolls on hover. */}
       <a
         href="/projects"
-        className="absolute left-[51px] top-[481px] w-[148px] h-[41px] flex items-center justify-center text-black text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-medium group"
+        className="group absolute left-[51px] top-[481px] w-[200px] h-[56px]"
       >
         <svg
-          className="absolute inset-0 w-full h-full transition-opacity group-hover:opacity-60"
-          viewBox="0 0 148 41"
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 200 56"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <ellipse cx="74" cy="20.5" rx="73.5" ry="20" stroke="#FC8EF1" strokeWidth="1" />
+          <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
         </svg>
-        <span className="relative z-10">Projects</span>
+        <CurvedFlipText
+          text="Projects"
+          frontColor="#000000"
+          backColor="#FC8EF1"
+          radius={24}
+          arcDegrees={22}
+          fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+        />
       </a>
       <a
         href="/gallery"
-        className="absolute right-[51px] top-[481px] w-[148px] h-[41px] flex items-center justify-center text-black text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-medium group"
+        className="group absolute right-[51px] top-[481px] w-[200px] h-[56px]"
       >
         <svg
-          className="absolute inset-0 w-full h-full transition-opacity group-hover:opacity-60"
-          viewBox="0 0 148 41"
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 200 56"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <ellipse cx="74" cy="20.5" rx="73.5" ry="20" stroke="#FC8EF1" strokeWidth="1" />
+          <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
         </svg>
-        <span className="relative z-10">Gallery</span>
+        <CurvedFlipText
+          text="Gallery"
+          frontColor="#000000"
+          backColor="#FC8EF1"
+          radius={24}
+          arcDegrees={22}
+          fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+        />
       </a>
 
-      {/* Name badge, dead center */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-[370px] w-[572px] h-[230px] flex items-center justify-center">
-        {/* Swap this div for your exported green sticker-shape SVG/PNG as the
-            background, then layer the two fonts on top exactly like Figma */}
-        <div className="absolute inset-0 bg-[#7ED957] [clip-path:polygon(8%_0,92%_0,100%_18%,100%_82%,92%_100%,8%_100%,0_82%,0_18%)]" />
-        <p className="relative text-[96px] leading-none tracking-[-0.96px] uppercase font-[family-name:var(--font-neue-bit)] font-bold">
-          <span className="font-[family-name:var(--font-condiment)] normal-case">J</span>
-          hn{' '}
-          <span className="font-[family-name:var(--font-condiment)] normal-case">o</span>
-          SE
-        </p>
+      {/* Name badge, dead center — exported directly from Figma as one image */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[370px] w-[672px] h-[430px]">
+        <Image
+          src="/images/Home-Name-Tag.png"
+          alt="John Jose"
+          fill
+          className="object-contain"
+          priority
+        />
       </div>
-
-      {/* Floating object photos — swap src for your exported images in /public */}
-      <FloatingImage
-        src="/images/cat.png"
-        alt="Floating cat photo"
-        width={260}
-        height={230}
-        className="absolute left-[100px] top-[150px]"
-        rotate={-6}
-        floatDelay={0}
-      />
-      <FloatingImage
-        src="/images/headphones.png"
-        alt="Floating headphones photo"
-        width={278}
-        height={275}
-        className="absolute left-[190px] top-[590px]"
-        rotate={10}
-        floatDelay={0.8}
-      />
-      <FloatingImage
-        src="/images/vinyl.png"
-        alt="Floating vinyl record photo"
-        width={266}
-        height={211}
-        className="absolute right-[210px] top-[589px]"
-        rotate={-4}
-        floatDelay={1.6}
-      />
 
       {/* Footer row */}
       <p className="absolute left-[51px] bottom-[40px] text-black text-[20px] font-[family-name:var(--font-thermochrome)] font-semibold">
@@ -106,16 +122,32 @@ export default function Home() {
       </p>
       <div className="absolute right-[51px] bottom-[40px] flex items-center gap-6 text-black text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold">
         <span>[</span>
-        <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="hover:opacity-60">
-          Behance
+        <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="group">
+          <CubeFlipText
+            text="Behance"
+            frontColor="#000000"
+            bottomColor="#FC8EF1"
+            fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+          />
         </a>
-        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-60">
-          Linkedin
+        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="group">
+          <CubeFlipText
+            text="Linkedin"
+            frontColor="#000000"
+            bottomColor="#FC8EF1"
+            fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+          />
         </a>
-        <a href="https://medium.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-60">
-          Medium
+        <a href="https://medium.com" target="_blank" rel="noopener noreferrer" className="group">
+          <CubeFlipText
+            text="Medium"
+            frontColor="#000000"
+            bottomColor="#FC8EF1"
+            fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+          />
         </a>
         <span>]</span>
+      </div>
       </div>
     </main>
   );
@@ -138,16 +170,12 @@ NEXT STEPS FOR YOU:
        );
      }
 
-2. Images: export the cat, headphones, and vinyl photos from Figma
-   (right-click layer → Export) as PNG, and place them in /public/images/
-   with the filenames referenced above.
-
-3. Name badge shape: the green sticker background here is a rough
+2. Name badge shape: the green sticker background here is a rough
    CSS clip-path approximation. For an exact match to your Figma vector,
    export that shape as an SVG from Figma and swap it in as a background
    image instead — much closer to pixel-perfect than a CSS shape.
 
-4. This uses fixed pixel positioning (matches your 1024px-wide Figma
+3. This uses fixed pixel positioning (matches your 1024px-wide Figma
    frame). It will look correct on a standard desktop viewport but will
    overflow/clip on smaller screens — expected for now per your call to
    get desktop working first.
