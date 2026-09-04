@@ -111,6 +111,7 @@ export default function Home() {
           src="/images/Home-Name-Tag.png"
           alt="John Jose"
           fill
+          sizes="672px"
           className="object-contain"
           priority
         />
