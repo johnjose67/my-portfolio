@@ -112,7 +112,8 @@ export default function Home() {
           alt="John Jose"
           fill
           sizes="672px"
-          className="object-contain"
+          draggable={false}
+          className="object-contain select-none [-webkit-user-drag:none]"
           priority
         />
       </div>
