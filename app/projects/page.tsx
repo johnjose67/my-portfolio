@@ -41,7 +41,7 @@ export default function Projects() {
           characterOffsetX2={-0.65}
           characterDelaySeconds2={10}
           characterTrimSeconds2={8}
-          characterRepeat={3}
+          
         />
       </div>
 
@@ -60,6 +60,8 @@ export default function Projects() {
             fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
           />
         </a>
+
+        
 
         {/* Badge, same position/size as the homepage's name tag — front is
             Projects.png (roles reversed from the homepage), dissolving to

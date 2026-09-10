@@ -8,7 +8,7 @@ type ImageRevealUpProps = {
   duration?: number; // ms
 };
 
-export default function ImageRevealUp({ src, alt, triggered, width, duration = 900 }: ImageRevealUpProps) {
+export default function ImageRevealUp({ src, alt, triggered, width, duration = 500 }: ImageRevealUpProps) {
   return (
     <img
       src={src}
@@ -18,11 +18,12 @@ export default function ImageRevealUp({ src, alt, triggered, width, duration = 9
       style={{
         width,
         height: 'auto',
-        // top-inset shrinking from 100% → 0% reveals the image starting
-        // at the BOTTOM edge and growing upward, since less is clipped
-        // away from the top as this shrinks
-        clipPath: triggered ? 'inset(0% 0 0 0)' : 'inset(100% 0 0 0)',
-        transition: `clip-path ${duration}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+        // Blur-to-focus, matching the same technique used for the
+        // Writeway text — starts soft/blurred and faded out, sharpens
+        // into focus as it fades in
+        opacity: triggered ? 1 : 0,
+        filter: triggered ? 'blur(0px)' : 'blur(10px)',
+        transition: `opacity ${duration}ms ease-out, filter ${duration}ms ease-out`,
       }}
     />
   );

@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { animate } from 'framer-motion';
-import LetterRevealLines from './LetterRevealLines';
+import MorphBlurText from './MorphBlurText';
 import ImageRevealUp from './ImageRevealUp';
 
 export type ProjectCardStackHandle = {
@@ -28,21 +28,23 @@ const WHEEL_SENSITIVITY = 0.0006; // lower = less sensitive, more scrolling need
 // Higher = catches up to the target faster (snappier); lower = smoother,
 // more cinematic lag. This is now a rate (per second), not a per-frame
 // fraction, so it behaves identically on 60Hz and 120Hz screens alike.
-const EASE_RATE = 6;
+const EASE_RATE = 9;
 
 // "7% distance from project-1.png" = 7% of the card's own width
 const SIDE_GAP = CARD_WIDTH * 0.07; // 78.75px
 const SIDE_OFFSET = CARD_WIDTH / 2 + SIDE_GAP; // 787.5px from screen center
 
-const WRITEWAY_LINES = [
-  'Writeway is an online book publishing firm',
-  'that specializes in making the publishing',
-  'process easy and efficient for authors. The',
-  'team at Writeway, through their personalized',
-  'hands-on approach, guides authors through',
-  'every step, ensuring a seamless journey from',
-  'manuscript to publication.',
-];
+const WRITEWAY_TEXT =
+  'Writeway is an online book publishing firm that specializes in making the publishing process easy and efficient for authors.';
+
+const HAMAD_TEXT =
+  'An app designed to enhance both the travel and meet-and-greet experience for airline passengers and their greeters.';
+
+const TRAX_TEXT =
+  'TRAX is an e-commerce app that targets e-bike enthusiasts to purchase e-bikes and customize them according to their preferences.';
+
+const BEEBOM_TEXT =
+  'Beebom is a leading tech platform that delivers the latest news, in-depth reviews, and quality videos to help consumers navigate technology.';
 
 // Only applies below center (rel < 0) — tilted while still rising from
 // below, perfectly upright by the time it reaches rel 0. Cards already
@@ -178,32 +180,130 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
     },
   }));
 
-  // Card 0's own distance from center — drives the side content. Triggers
-  // once it's essentially arrived at center, and stays visible while it
-  // remains the active/nearby card.
+  // Each card's own distance from center drives its side content. Uses a
+  // single clean cutover point (progress = 0.5, the midpoint between
+  // card 0 and card 1) rather than two overlapping ranges — overlapping
+  // ranges meant both stayed visible together for as long as you lingered
+  // in that zone, which read as cluttered rather than a handoff. The
+  // 800ms opacity/filter transition on each still provides a brief,
+  // natural smoothing right at the crossover, without the sustained
+  // simultaneous overlap.
   const card0Rel = progress - 0;
-  const showSideContent = !exiting && card0Rel > -0.15 && card0Rel < 0.6;
+  const card1Rel = progress - 1;
+  const card2Rel = progress - 2;
+  const card3Rel = progress - 3;
+  const showWriteway = !exiting && progress < 0.5 && card0Rel > -0.15;
+  const showHamad = !exiting && progress >= 0.5 && progress < 1.5 && card1Rel < 0.6;
+  const showTrax = !exiting && progress >= 1.5 && progress < 2.5 && card2Rel < 0.6;
+  const showBeebom = !exiting && progress >= 2.5 && card3Rel < 0.6;
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center overflow-hidden" style={{ perspective: 1400, pointerEvents: 'none' }}>
-      {/* Right side — Writeway description, letter-by-letter reveal */}
+      {/* Right side, text — Writeway (project-1). MorphBlurText handles
+          its own opacity/blur/scale internally — this outer div is now
+          purely for position/layout. */}
       <div
         className="absolute top-1/2 -translate-y-1/2"
-        style={{ left: `calc(50% + ${SIDE_OFFSET}px)`, zIndex: 500 }}
+        style={{
+          left: `calc(50% + ${SIDE_OFFSET}px)`,
+          width: '15vw',
+          zIndex: 500,
+          pointerEvents: showWriteway ? 'auto' : 'none',
+        }}
       >
-        <LetterRevealLines
-          lines={WRITEWAY_LINES}
-          triggered={showSideContent}
+        <MorphBlurText
+          text={WRITEWAY_TEXT}
+          triggered={showWriteway}
           className="text-black text-[20px] leading-[20px] tracking-[0.48px] uppercase text-left font-[family-name:var(--font-thermochrome)] font-semibold"
         />
       </div>
 
-      {/* Left side — writewaytext.png, revealed via an upward-growing mask */}
+      {/* Left side, image — Writeway (project-1) */}
       <div
         className="absolute top-1/2 -translate-y-1/2"
         style={{ right: `calc(50% + ${SIDE_OFFSET}px)`, zIndex: 500 }}
       >
-        <ImageRevealUp src="/images/writewaytext.png" alt="Writeway" triggered={showSideContent} width={350} />
+        <ImageRevealUp src="/images/writewaytext.png" alt="Writeway" triggered={showWriteway} width={350} />
+      </div>
+
+      {/* Right side, text — Hamad International Airport (project-2). Same
+          position, same sizing, same style as Writeway's — only the
+          content and trigger differ. */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{
+          left: `calc(50% + ${SIDE_OFFSET}px)`,
+          width: '15vw',
+          zIndex: 500,
+          pointerEvents: showHamad ? 'auto' : 'none',
+        }}
+      >
+        <MorphBlurText
+          text={HAMAD_TEXT}
+          triggered={showHamad}
+          className="text-black text-[20px] leading-[20px] tracking-[0.48px] uppercase text-left font-[family-name:var(--font-thermochrome)] font-semibold"
+        />
+      </div>
+
+      {/* Left side, image — Hamad International Airport (project-2) */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{ right: `calc(50% + ${SIDE_OFFSET}px)`, zIndex: 500 }}
+      >
+        <ImageRevealUp src="/images/hiatext.png" alt="Hamad International Airport" triggered={showHamad} width={350} />
+      </div>
+
+      {/* Right side, text — TRAX (project-3). Same position, sizing, and
+          style as the previous two — only content and trigger differ. */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{
+          left: `calc(50% + ${SIDE_OFFSET}px)`,
+          width: '15vw',
+          zIndex: 500,
+          pointerEvents: showTrax ? 'auto' : 'none',
+        }}
+      >
+        <MorphBlurText
+          text={TRAX_TEXT}
+          triggered={showTrax}
+          className="text-black text-[20px] leading-[20px] tracking-[0.48px] uppercase text-left font-[family-name:var(--font-thermochrome)] font-semibold"
+        />
+      </div>
+
+      {/* Left side, image — TRAX (project-3) */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{ right: `calc(50% + ${SIDE_OFFSET}px)`, zIndex: 500 }}
+      >
+        <ImageRevealUp src="/images/traxtext.png" alt="TRAX" triggered={showTrax} width={350} />
+      </div>
+
+      {/* Right side, text — Beebom (project-4). Same position, sizing,
+          and style as the previous three — only content and trigger
+          differ. */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{
+          left: `calc(50% + ${SIDE_OFFSET}px)`,
+          width: '15vw',
+          zIndex: 500,
+          pointerEvents: showBeebom ? 'auto' : 'none',
+        }}
+      >
+        <MorphBlurText
+          text={BEEBOM_TEXT}
+          triggered={showBeebom}
+          className="text-black text-[20px] leading-[20px] tracking-[0.48px] uppercase text-left font-[family-name:var(--font-thermochrome)] font-semibold"
+        />
+      </div>
+
+      {/* Left side, image — Beebom (project-4) */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2"
+        style={{ right: `calc(50% + ${SIDE_OFFSET}px)`, zIndex: 500 }}
+      >
+        <ImageRevealUp src="/images/beebomtext.png" alt="Beebom" triggered={showBeebom} width={350} />
       </div>
 
       {CARDS.map((card, i) => {
