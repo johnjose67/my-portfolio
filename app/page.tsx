@@ -42,7 +42,6 @@ export default function Home() {
           characterOffsetX2={-0.65}
           characterDelaySeconds2={10}
           characterTrimSeconds2={8}
-          characterRepeat={3}
         />
       </div>
 
@@ -62,7 +61,7 @@ export default function Home() {
           it passes near, then spring back into place */}
       <div className="absolute left-1/2 -translate-x-1/2 top-[54px] w-[480px]">
         <ScatterText
-          text="Hi, I am John. I'm a passionate interaction designer dedicated to crafting exceptional user experiences by empathizing with and understanding people's perspectives. My expertise extends to enhancing both the UX and UI of products, ensuring they are not only user-friendly but visually appealing."
+          text="Hi, I'm John, an interaction designer with 3 years of experience turning ideas into intuitive, thoughtful digital experiences. When I'm not deep in a design file, you'll find me behind a camera chasing good light, or being a very devoted cat person. I care about designing things that feel as good as they work."
           className="text-black text-[20px] leading-[20px] tracking-[0.48px] uppercase text-left font-[family-name:var(--font-thermochrome)] font-semibold"
         />
       </div>
