@@ -1,14 +1,27 @@
-import Image from 'next/image';
+'use client';
+
+import { useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import GalleryTunnel from '@/components/GalleryTunnel';
 import ScatterText from '@/components/ScatterText';
 import CurvedFlipText from '@/components/CurvedFlipText';
 import CubeFlipText from '@/components/CubeFlipText';
+import BadgeDissolve, { type BadgeDissolveHandle } from '@/components/BadgeDissolve';
 
 // Desktop-first build matching the Figma "My Portfolio" frame.
 // Mobile responsiveness is intentionally deferred — see the note at the
 // bottom of this file for what to tackle next.
 
 export default function Home() {
+  const router = useRouter();
+  const badgeRef = useRef<BadgeDissolveHandle>(null);
+
+  const handleProjectsClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await badgeRef.current?.dissolve(); // wait for the badge coin-flip to finish, then navigate
+    router.push('/projects');
+  };
+
   return (
     <main className="relative w-full min-h-screen overflow-hidden">
       {/* Continuous background tunnel — fixed behind everything, no
@@ -29,6 +42,7 @@ export default function Home() {
           characterOffsetX2={-0.65}
           characterDelaySeconds2={10}
           characterTrimSeconds2={8}
+          characterRepeat={3}
         />
       </div>
 
@@ -61,9 +75,11 @@ export default function Home() {
       </div>
 
       {/* Nav pills — Projects (left) / Gallery (right). Ellipse outline
-          stays static; the text itself curves and rolls on hover. */}
+          stays static; the text itself curves and rolls on hover. Clicking
+          Projects now triggers the badge coin-flip, then navigates. */}
       <a
         href="/projects"
+        onClick={handleProjectsClick}
         className="group absolute left-[51px] top-[481px] w-[200px] h-[56px]"
       >
         <svg
@@ -105,16 +121,18 @@ export default function Home() {
         />
       </a>
 
-      {/* Name badge, dead center — exported directly from Figma as one image */}
+      {/* Name badge, dead center — dissolves into a fine grid of tiles in
+          scattered order when the Projects button is clicked, while
+          Projects.png fades in underneath over 2 seconds */}
       <div className="absolute left-1/2 -translate-x-1/2 top-[370px] w-[672px] h-[430px]">
-        <Image
-          src="/images/Home-Name-Tag.png"
-          alt="John Jose"
-          fill
-          sizes="672px"
-          draggable={false}
-          className="object-contain select-none [-webkit-user-drag:none]"
-          priority
+        <BadgeDissolve
+          ref={badgeRef}
+          frontSrc="/images/Home-Name-Tag.png"
+          frontAlt="John Jose"
+          backSrc="/images/Projects.png"
+          backAlt="Projects"
+          width={672}
+          height={430}
         />
       </div>
 
