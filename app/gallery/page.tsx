@@ -1,18 +1,22 @@
 import Link from 'next/link';
-import GalleryTunnel from '@/components/GalleryTunnel';
 import SphereGalleryCanvas from '@/components/SphereGalleryCanvas';
 import CubeFlipText from '@/components/CubeFlipText';
 
 export default function Gallery() {
   return (
-    <main className="relative w-full h-screen overflow-hidden">
-      {/* Same wireframe tunnel as the homepage/projects page, no character
-          videos — just the grid scrolling on its own */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <GalleryTunnel background="#FFFFFF" lineColor="#000000" lineOpacity={10} speed={10} />
+    <main className="relative w-full h-screen overflow-hidden bg-white">
+      {/* Badge, same position/size as the homepage and projects page badge.
+          Sits BEHIND the photo canvas (lower z-index) — note it won't be
+          visible right now since the canvas is fully opaque and covers
+          the whole screen, but it's correctly layered for whenever that
+          changes (a loading state, gaps in the plane, etc). */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[370px] w-[672px] h-[430px] z-10 pointer-events-none">
+        <img src="/images/gallery.png" alt="Gallery" className="w-full h-full object-contain select-none" draggable={false} />
       </div>
 
-      <SphereGalleryCanvas />
+      <div className="relative z-20">
+        <SphereGalleryCanvas />
+      </div>
 
       {/* Home nav — sits above the canvas, matching the rest of the site */}
       <Link href="/" className="group absolute left-[51px] top-[50px] z-50">

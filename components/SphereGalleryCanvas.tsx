@@ -72,6 +72,15 @@ function springBackTowardBounds(value: number, min: number, max: number): number
 const REPEAT_X = 8;
 const REPEAT_Y = REPEAT_X * (TILE_WIDTH / TILE_HEIGHT);
 
+// --- Background image (gallery.png) — sits on its own separate plane,
+// positioned slightly behind the main photo plane. Since it's NOT part
+// of the repeating tile texture, it never repeats — it just shows
+// through the transparent gaps in the pattern above it, once.
+const BG_ASPECT = 952 / 464; // gallery.png's real dimensions
+const BG_WIDTH = 1400;
+const BG_HEIGHT = BG_WIDTH / BG_ASPECT;
+const BG_Z_OFFSET = -20; // how far behind the main plane it sits
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -111,8 +120,10 @@ async function buildTileTexture(): Promise<THREE.CanvasTexture> {
   canvas.width = TILE_WIDTH;
   canvas.height = TILE_HEIGHT;
   const ctx = canvas.getContext('2d')!;
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, TILE_WIDTH, TILE_HEIGHT);
+  // Transparent background instead of white — this is what lets the
+  // separate background plane (gallery.png) show through the gaps
+  // between photos, rather than being covered by a solid white fill.
+  ctx.clearRect(0, 0, TILE_WIDTH, TILE_HEIGHT);
 
   const images = await Promise.all(PHOTOS.map((p) => loadImage(p.imageSrc)));
   PHOTOS.forEach((photo, i) => {
@@ -203,6 +214,17 @@ export default function SphereGalleryCanvas() {
 
     const plane = new THREE.Mesh(geometry, material);
     scene.add(plane);
+
+    // Background plane for gallery.png — plain, non-repeating,
+    // positioned slightly behind the main plane via Z. Never moves with
+    // panning at all, so it stays fixed/centered regardless of drag.
+    const bgTexture = new THREE.TextureLoader().load('/images/gallery.png');
+    bgTexture.colorSpace = THREE.SRGBColorSpace;
+    const bgGeometry = new THREE.PlaneGeometry(BG_WIDTH, BG_HEIGHT);
+    const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture, transparent: true });
+    const bgPlane = new THREE.Mesh(bgGeometry, bgMaterial);
+    bgPlane.position.z = BG_Z_OFFSET;
+    scene.add(bgPlane);
 
     let disposed = false;
     let loadedTexture: THREE.CanvasTexture | null = null;
@@ -308,6 +330,9 @@ export default function SphereGalleryCanvas() {
       geometry.dispose();
       material.dispose();
       loadedTexture?.dispose();
+      bgGeometry.dispose();
+      bgMaterial.dispose();
+      bgTexture.dispose();
       renderer.dispose();
     };
   }, []);
