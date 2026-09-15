@@ -1,6 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import GalleryTunnel from '@/components/GalleryTunnel';
 import ScatterText from '@/components/ScatterText';
@@ -15,11 +16,25 @@ import BadgeDissolve, { type BadgeDissolveHandle } from '@/components/BadgeDisso
 export default function Home() {
   const router = useRouter();
   const badgeRef = useRef<BadgeDissolveHandle>(null);
+  // The badge always dissolves FROM Home-Name-Tag.png, but TO whichever
+  // page you're navigating to — Projects or Gallery. flushSync forces
+  // this state update to commit synchronously before dissolve() runs,
+  // so BadgeDissolve always reads the correct target, not a stale one
+  // from React's normal (async/batched) update timing.
+  const [badgeTarget, setBadgeTarget] = useState({ src: '/images/Projects.png', alt: 'Projects' });
 
   const handleProjectsClick = async (e: React.MouseEvent) => {
     e.preventDefault();
+    flushSync(() => setBadgeTarget({ src: '/images/Projects.png', alt: 'Projects' }));
     await badgeRef.current?.dissolve(); // wait for the badge coin-flip to finish, then navigate
     router.push('/projects');
+  };
+
+  const handleGalleryClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    flushSync(() => setBadgeTarget({ src: '/images/gallery.png', alt: 'Gallery' }));
+    await badgeRef.current?.dissolve();
+    router.push('/gallery');
   };
 
   return (
@@ -74,8 +89,8 @@ export default function Home() {
       </div>
 
       {/* Nav pills — Projects (left) / Gallery (right). Ellipse outline
-          stays static; the text itself curves and rolls on hover. Clicking
-          Projects now triggers the badge coin-flip, then navigates. */}
+          stays static; the text itself curves and rolls on hover. Both
+          now trigger the badge dissolve before navigating. */}
       <a
         href="/projects"
         onClick={handleProjectsClick}
@@ -100,6 +115,7 @@ export default function Home() {
       </a>
       <a
         href="/gallery"
+        onClick={handleGalleryClick}
         className="group absolute right-[51px] top-[481px] w-[200px] h-[56px]"
       >
         <svg
@@ -121,15 +137,15 @@ export default function Home() {
       </a>
 
       {/* Name badge, dead center — dissolves into a fine grid of tiles in
-          scattered order when the Projects button is clicked, while
-          Projects.png fades in underneath over 2 seconds */}
+          scattered order when Projects OR Gallery is clicked, revealing
+          whichever page's badge underneath via badgeTarget */}
       <div className="absolute left-1/2 -translate-x-1/2 top-[370px] w-[672px] h-[430px]">
         <BadgeDissolve
           ref={badgeRef}
           frontSrc="/images/Home-Name-Tag.png"
           frontAlt="John Jose"
-          backSrc="/images/Projects.png"
-          backAlt="Projects"
+          backSrc={badgeTarget.src}
+          backAlt={badgeTarget.alt}
           width={672}
           height={430}
         />
@@ -171,31 +187,3 @@ export default function Home() {
     </main>
   );
 }
-
-/*
-NEXT STEPS FOR YOU:
-
-1. Fonts: drop your PP Neue Bit, Condiment, and MD Thermochrome font files
-   into /public/fonts/ and update lib/fonts.js with the exact filenames.
-   Then import and apply the font variables in app/layout.js:
-
-     import { neueBit, condiment, thermochrome } from '@/lib/fonts';
-
-     export default function RootLayout({ children }) {
-       return (
-         <html lang="en" className={`${neueBit.variable} ${condiment.variable} ${thermochrome.variable}`}>
-           <body>{children}</body>
-         </html>
-       );
-     }
-
-2. Name badge shape: the green sticker background here is a rough
-   CSS clip-path approximation. For an exact match to your Figma vector,
-   export that shape as an SVG from Figma and swap it in as a background
-   image instead — much closer to pixel-perfect than a CSS shape.
-
-3. This uses fixed pixel positioning (matches your 1024px-wide Figma
-   frame). It will look correct on a standard desktop viewport but will
-   overflow/clip on smaller screens — expected for now per your call to
-   get desktop working first.
-*/
