@@ -19,18 +19,18 @@ const TILE_HEIGHT = 2050; // grown from 1700 — gallery-7 (needs 1960) and gall
 // to crop any part of a photo away to fit a mismatched box.
 const PHOTOS: PhotoCard[] = [
   { x: 100, y: 100, width: 520, height: 693.3, imageSrc: '/images/gallery-1.jpg' },
-  { x: 900, y: 180, width: 540, height: 720, imageSrc: '/images/gallery-2.jpg' },
-  { x: 1720, y: 90, width: 400, height: 533, imageSrc: '/images/gallery-3.jpg' },
-  { x: 380, y: 1000, width: 440, height: 587, imageSrc: '/images/gallery-4.jpg' },
-  { x: 1250, y: 950, width: 520, height: 693.3, imageSrc: '/images/gallery-5.jpg' },
+  { x: 900, y: 180, width: 590, height: 786.6, imageSrc: '/images/gallery-2.jpg' },
+  { x: 1720, y: 90, width: 450, height: 600, imageSrc: '/images/gallery-3.jpg' },
+  { x: 580, y: 1000, width: 460, height: 613.3, imageSrc: '/images/gallery-4.jpg' },
+  { x: 1250, y: 1050, width: 520, height: 693.3, imageSrc: '/images/gallery-5.jpg' },
   { x: 2000, y: 820, width: 400, height: 533, imageSrc: '/images/gallery-6.jpg' },
-  { x: 150, y: 1400, width: 420, height: 560, imageSrc: '/images/gallery-7.jpg' },
-  { x: 1550, y: 1420, width: 440, height: 587, imageSrc: '/images/gallery-8.jpg' },
+  { x: 100, y: 1400, width: 420, height: 560, imageSrc: '/images/gallery-7.jpg' },
+  { x: 1850, y: 1420, width: 440, height: 587, imageSrc: '/images/gallery-8.jpg' },
 ];
 
 // --- Plane / bulge tuning ---
 const PLANE_SIZE = 6000; // world units — sized generously so the bulge never reveals an edge
-const BULGE_RADIUS = 1500; // controls how dramatic the curve is at max — smaller = more dramatic bulge
+const BULGE_RADIUS = 1200; // controls how dramatic the curve is at max — smaller = more dramatic bulge
 const CAMERA_DISTANCE = 700;
 const FOV = 45;
 const CURVATURE_EASE = 0.1; // how quickly it eases between flat and curved each frame
@@ -40,28 +40,10 @@ const PAN_SENSITIVITY = 0.00045; // drag pixels → UV offset
 const MOMENTUM_DECAY = 0.94;
 const MIN_VELOCITY = 0.00001;
 
-// --- Bounded central area (rubber-band), same mechanism as before —
-// just applied to UV offset now instead of orbit angles.
-const OFFSET_RANGE_X = 0.5;
-const OFFSET_RANGE_Y = 0.4;
-const OVERSCROLL_DAMPING = 0.32;
-const SPRING_BACK_EASE = 0.14;
-
-function applyBoundedDelta(current: number, delta: number, min: number, max: number): number {
-  if (current < min || current > max) {
-    return current + delta * OVERSCROLL_DAMPING;
-  }
-  const next = current + delta;
-  if (next < min) return min - (min - next) * OVERSCROLL_DAMPING;
-  if (next > max) return max + (next - max) * OVERSCROLL_DAMPING;
-  return next;
-}
-
-function springBackTowardBounds(value: number, min: number, max: number): number {
-  if (value < min) return value + (min - value) * SPRING_BACK_EASE;
-  if (value > max) return value + (max - value) * SPRING_BACK_EASE;
-  return value;
-}
+// Panning is unbounded — offsetX/offsetY can grow in any direction
+// forever. The texture's RepeatWrapping (see REPEAT_X/REPEAT_Y below)
+// handles the seamless loop on the GPU side automatically, so there's
+// nothing here that needs to clamp or spring back.
 
 // --- Texture tiling ---
 // REPEAT_Y is DERIVED from REPEAT_X and the tile's own aspect ratio,
@@ -72,14 +54,13 @@ function springBackTowardBounds(value: number, min: number, max: number): number
 const REPEAT_X = 8;
 const REPEAT_Y = REPEAT_X * (TILE_WIDTH / TILE_HEIGHT);
 
-// --- Background image (gallery.png) — sits on its own separate plane,
-// positioned slightly behind the main photo plane. Since it's NOT part
-// of the repeating tile texture, it never repeats — it just shows
-// through the transparent gaps in the pattern above it, once.
+// --- Background image (gallery.png) — sits on its own separate plane.
+// Since it's NOT part of the repeating tile texture, it never repeats —
+// it just shows through the transparent gaps in the pattern once.
 const BG_ASPECT = 952 / 464; // gallery.png's real dimensions
 const BG_WIDTH = 1400;
 const BG_HEIGHT = BG_WIDTH / BG_ASPECT;
-const BG_Z_OFFSET = -20; // how far behind the main plane it sits
+const BG_Z_OFFSET = -20; // positive = in FRONT of the main plane. Needs to comfortably exceed the main plane's max possible bulge height (~1150 units at this BULGE_RADIUS, at full curvature) so gallery.png stays in front even during a full drag, not just at rest.
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -215,9 +196,9 @@ export default function SphereGalleryCanvas() {
     const plane = new THREE.Mesh(geometry, material);
     scene.add(plane);
 
-    // Background plane for gallery.png — plain, non-repeating,
-    // positioned slightly behind the main plane via Z. Never moves with
-    // panning at all, so it stays fixed/centered regardless of drag.
+    // Background plane for gallery.png — plain, non-repeating. Never
+    // moves with panning at all, so it stays fixed/centered regardless
+    // of drag. Now positioned in FRONT of the main plane (positive Z).
     const bgTexture = new THREE.TextureLoader().load('/images/gallery.png');
     bgTexture.colorSpace = THREE.SRGBColorSpace;
     const bgGeometry = new THREE.PlaneGeometry(BG_WIDTH, BG_HEIGHT);
@@ -262,8 +243,8 @@ export default function SphereGalleryCanvas() {
 
       const dOffsetX = dx * PAN_SENSITIVITY;
       const dOffsetY = -dy * PAN_SENSITIVITY;
-      offsetX = applyBoundedDelta(offsetX, dOffsetX, -OFFSET_RANGE_X, OFFSET_RANGE_X);
-      offsetY = applyBoundedDelta(offsetY, dOffsetY, -OFFSET_RANGE_Y, OFFSET_RANGE_Y);
+      offsetX += dOffsetX;
+      offsetY += dOffsetY;
 
       velocity = { x: dOffsetX, y: dOffsetY };
     };
@@ -294,8 +275,8 @@ export default function SphereGalleryCanvas() {
 
       if (!dragging) {
         // Momentum: pan keeps drifting with decaying velocity after release
-        offsetX = applyBoundedDelta(offsetX, velocity.x, -OFFSET_RANGE_X, OFFSET_RANGE_X);
-        offsetY = applyBoundedDelta(offsetY, velocity.y, -OFFSET_RANGE_Y, OFFSET_RANGE_Y);
+        offsetX += velocity.x;
+        offsetY += velocity.y;
         velocity.x *= MOMENTUM_DECAY;
         velocity.y *= MOMENTUM_DECAY;
         if (Math.abs(velocity.x) < MIN_VELOCITY && Math.abs(velocity.y) < MIN_VELOCITY) {
@@ -303,8 +284,12 @@ export default function SphereGalleryCanvas() {
         }
       }
 
-      offsetX = springBackTowardBounds(offsetX, -OFFSET_RANGE_X, OFFSET_RANGE_X);
-      offsetY = springBackTowardBounds(offsetY, -OFFSET_RANGE_Y, OFFSET_RANGE_Y);
+      // Wraps the raw offset back into a small range every frame — not
+      // needed for the visual loop (RepeatWrapping already handles any
+      // value correctly on the GPU), just keeps the JS-side numbers from
+      // growing unbounded over a very long dragging session.
+      offsetX = offsetX % 1;
+      offsetY = offsetY % 1;
 
       // Curvature target is simply "are you currently pressing and
       // dragging" — not tied to speed at all, matching "clicked and
