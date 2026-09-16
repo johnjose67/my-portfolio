@@ -2,30 +2,31 @@
 
 import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import SphereGalleryCanvas from '@/components/SphereGalleryCanvas';
+import SphereGalleryCanvas, { type SphereGalleryCanvasHandle } from '@/components/SphereGalleryCanvas';
 import CubeFlipText from '@/components/CubeFlipText';
 import BadgeDissolve, { type BadgeDissolveHandle } from '@/components/BadgeDissolve';
 
 export default function Gallery() {
   const router = useRouter();
   const badgeRef = useRef<BadgeDissolveHandle>(null);
+  const canvasRef = useRef<SphereGalleryCanvasHandle>(null);
 
   const handleHomeClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    await badgeRef.current?.dissolve(); // same pattern as the Projects page — dissolve, then navigate
+    // Both play at once: the photos reverse their intro (slide back
+    // down, curve back up, un-reveal), while the badge dissolves —
+    // navigation waits for both to finish.
+    await Promise.all([canvasRef.current?.exitAnimation(), badgeRef.current?.dissolve()]);
     router.push('/');
   };
 
   return (
     <main className="relative w-full h-screen overflow-hidden bg-white">
       {/* Badge, same position/size as the homepage and projects page badge —
-          roles reversed like the Projects page: front is gallery.png,
-          dissolving to reveal Home-Name-Tag.png underneath when Home is
-          clicked. Sits BEHIND the photo canvas (lower z-index) — note it
-          won't be visible while idle since the canvas is fully opaque and
-          covers the whole screen, but the dissolve animation itself still
-          plays correctly underneath before navigation happens. */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-[370px] w-[672px] h-[430px] z-10 pointer-events-none">
+          this is now the ONLY gallery.png render on the page, since the
+          WebGL version inside SphereGalleryCanvas was removed. z-30 keeps
+          it above the photo canvas (z-20), so it renders in front. */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-[370px] w-[672px] h-[430px] z-30 pointer-events-none">
         <BadgeDissolve
           ref={badgeRef}
           frontSrc="/images/gallery.png"
@@ -38,7 +39,7 @@ export default function Gallery() {
       </div>
 
       <div className="relative z-20">
-        <SphereGalleryCanvas />
+        <SphereGalleryCanvas ref={canvasRef} />
       </div>
 
       {/* Home nav — now triggers the badge dissolve before navigating,

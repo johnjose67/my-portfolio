@@ -1,7 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import * as THREE from 'three';
+import { animate } from 'framer-motion';
+
+export type SphereGalleryCanvasHandle = {
+  exitAnimation: () => Promise<void>;
+};
 
 type PhotoCard = {
   x: number;
@@ -40,6 +45,11 @@ const PAN_SENSITIVITY = 0.00045; // drag pixels → UV offset
 const MOMENTUM_DECAY = 0.94;
 const MIN_VELOCITY = 0.00001;
 
+// How long a press must be held before curvature starts activating —
+// this is what distinguishes a genuine "click and hold" from a quick
+// single click/tap, which should have no curve effect at all.
+const HOLD_THRESHOLD_MS = 150;
+
 // Panning is unbounded — offsetX/offsetY can grow in any direction
 // forever. The texture's RepeatWrapping (see REPEAT_X/REPEAT_Y below)
 // handles the seamless loop on the GPU side automatically, so there's
@@ -54,13 +64,18 @@ const MIN_VELOCITY = 0.00001;
 const REPEAT_X = 8;
 const REPEAT_Y = REPEAT_X * (TILE_WIDTH / TILE_HEIGHT);
 
-// --- Background image (gallery.png) — sits on its own separate plane.
-// Since it's NOT part of the repeating tile texture, it never repeats —
-// it just shows through the transparent gaps in the pattern once.
-const BG_ASPECT = 952 / 464; // gallery.png's real dimensions
-const BG_WIDTH = 1400;
-const BG_HEIGHT = BG_WIDTH / BG_ASPECT;
-const BG_Z_OFFSET = -20; // positive = in FRONT of the main plane. Needs to comfortably exceed the main plane's max possible bulge height (~1150 units at this BULGE_RADIUS, at full curvature) so gallery.png stays in front even during a full drag, not just at rest.
+// gallery.png badge removed from this canvas — it's now shown only via
+// the DOM-based BadgeDissolve badge on the Gallery page itself, to
+// avoid two separate renders of the same image on screen at once.
+
+// --- Intro (load-in) tuning — slide up from below while curved,
+// flattening as it settles into place, with a single simple top-to-
+// bottom reveal line sweeping down over the whole plane at the same time ---
+const INTRO_DURATION_S = 2.0;
+const INTRO_SLIDE_DISTANCE = 400; // world units below resting position to start from
+
+// --- Exit tuning (reverse of the intro, played on Home click) ---
+const EXIT_DURATION_S = 2.0;
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -140,21 +155,86 @@ const VERTEX_SHADER = `
   }
 `;
 
+// uRevealProgress: 0 = nothing shown yet, 1 = fully revealed. Uses
+// gl_FragCoord (actual on-screen pixel position) rather than the
+// plane's own vUv — the plane is 6000 units across but the camera only
+// ever sees a small sliver of it near its center, so sweeping across
+// vUv's full 0–1 range would race through that tiny visible portion
+// almost instantly. Screen-space coordinates track what you actually
+// see, regardless of the underlying plane's real size.
 const FRAGMENT_SHADER = `
   uniform sampler2D uMap;
   uniform vec2 uOffset;
   uniform vec2 uRepeat;
+  uniform float uRevealProgress;
+  uniform vec2 uResolution;
   varying vec2 vUv;
 
   void main() {
+    // 0 = bottom of the screen, 1 = top. Revealing top-to-bottom means
+    // the visible region starts at the top and grows downward as
+    // progress increases.
+    float screenY = gl_FragCoord.y / uResolution.y;
+    if (screenY < (1.0 - uRevealProgress)) {
+      discard;
+    }
+
     vec2 uv = vUv * uRepeat + uOffset;
     gl_FragColor = texture2D(uMap, uv);
   }
 `;
 
-export default function SphereGalleryCanvas() {
+const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function SphereGalleryCanvas(_, ref) {
   const frameRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Holds references to the live plane/uniforms/state so the imperative
+  // exitAnimation() below (called from OUTSIDE the effect, via ref) can
+  // reach into the same Three.js objects the effect owns.
+  const sceneApiRef = useRef<{
+    plane: THREE.Mesh;
+    uniforms: {
+      uCurvature: { value: number };
+      uRevealProgress: { value: number };
+    };
+    setExiting: (v: boolean) => void;
+  } | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    exitAnimation: () => {
+      return new Promise<void>((resolve) => {
+        const api = sceneApiRef.current;
+        if (!api) {
+          resolve();
+          return;
+        }
+        // Stops the normal per-frame drag/pan logic from fighting with
+        // this animation's direct writes to the same uniforms.
+        api.setExiting(true);
+
+        animate(0, 1, {
+          duration: EXIT_DURATION_S,
+          ease: [0.16, 1, 0.3, 1],
+          onUpdate: (t) => {
+            // Exact reverse of the intro: slides back down and curves
+            // back up, together.
+            api.plane.position.y = -INTRO_SLIDE_DISTANCE * t;
+            api.uniforms.uCurvature.value = t;
+          },
+          onComplete: resolve,
+        });
+
+        // Reveal reverses too — same EXIT_DURATION_S, running
+        // concurrently, matching how the intro combined both.
+        animate(1, 0, {
+          duration: EXIT_DURATION_S,
+          ease: [0.16, 1, 0.3, 1],
+          onUpdate: (v) => {
+            api.uniforms.uRevealProgress.value = v;
+          },
+        });
+      });
+    },
+  }));
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -185,6 +265,8 @@ export default function SphereGalleryCanvas() {
       uMap: { value: null as THREE.Texture | null },
       uOffset: { value: new THREE.Vector2(0, 0) },
       uRepeat: { value: new THREE.Vector2(REPEAT_X, REPEAT_Y) },
+      uRevealProgress: { value: 0 },
+      uResolution: { value: new THREE.Vector2(1, 1) },
     };
 
     const material = new THREE.ShaderMaterial({
@@ -194,21 +276,29 @@ export default function SphereGalleryCanvas() {
     });
 
     const plane = new THREE.Mesh(geometry, material);
+    plane.position.y = -INTRO_SLIDE_DISTANCE; // starts off-screen below, slides up on load
     scene.add(plane);
 
-    // Background plane for gallery.png — plain, non-repeating. Never
-    // moves with panning at all, so it stays fixed/centered regardless
-    // of drag. Now positioned in FRONT of the main plane (positive Z).
-    const bgTexture = new THREE.TextureLoader().load('/images/gallery.png');
-    bgTexture.colorSpace = THREE.SRGBColorSpace;
-    const bgGeometry = new THREE.PlaneGeometry(BG_WIDTH, BG_HEIGHT);
-    const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture, transparent: true });
-    const bgPlane = new THREE.Mesh(bgGeometry, bgMaterial);
-    bgPlane.position.z = BG_Z_OFFSET;
-    scene.add(bgPlane);
+    sceneApiRef.current = {
+      plane,
+      uniforms,
+      setExiting: (v) => {
+        exiting = v;
+      },
+    };
+
+    // Pan state — UV offset, driven directly by drag delta.
+    let offsetX = 0;
+    let offsetY = 0;
+    let currentCurvature = 0;
 
     let disposed = false;
+    let exiting = false; // true while exitAnimation() is playing — pauses the normal drag/pan-driven curvature and offset updates below so they don't fight with it
     let loadedTexture: THREE.CanvasTexture | null = null;
+    let introControls: ReturnType<typeof animate> | null = null;
+    let revealControls: ReturnType<typeof animate> | null = null;
+    let introActive = true; // while true, the intro animation owns uCurvature entirely — the normal drag-based logic below stays hands-off until it finishes
+
     buildTileTexture().then((texture) => {
       if (disposed) {
         texture.dispose();
@@ -217,15 +307,43 @@ export default function SphereGalleryCanvas() {
       loadedTexture = texture;
       uniforms.uMap.value = texture;
       material.needsUpdate = true;
+
+      // Slide/flatten — kept on the fast, elegant ease-out curve, since
+      // that's the right feel for something settling into place.
+      introControls = animate(0, 1, {
+        duration: INTRO_DURATION_S,
+        ease: [0.16, 1, 0.3, 1],
+        onUpdate: (t) => {
+          plane.position.y = -INTRO_SLIDE_DISTANCE * (1 - t);
+          const curvature = 1 - t;
+          uniforms.uCurvature.value = curvature;
+          currentCurvature = curvature; // keeps the drag-based system's own state in sync, so there's no jump when it takes over after
+        },
+        onComplete: () => {
+          introActive = false;
+        },
+      });
+
+      // Reveal — deliberately on its OWN linear (constant-speed) timing,
+      // not the ease-out curve above.
+      revealControls = animate(0, 1, {
+        duration: 1.0,
+        ease: [0.16, 1, 0.3, 1],
+        onUpdate: (t) => {
+          uniforms.uRevealProgress.value = t;
+        },
+      });
     });
 
-    // Pan state — UV offset, driven directly by drag delta. Replaces the
-    // previous theta/phi orbit entirely.
-    let offsetX = 0;
-    let offsetY = 0;
-    let currentCurvature = 0;
-
+    // Pan/drag state — `dragging` still fires immediately on press (it
+    // needs to, for pan tracking to feel responsive from the first
+    // pixel of movement). `holding` is a SEPARATE flag that only
+    // becomes true once the press has lasted past HOLD_THRESHOLD_MS —
+    // curvature reads from `holding`, not `dragging`, so a quick tap
+    // (pressed and released before that threshold) never triggers it.
     let dragging = false;
+    let holding = false;
+    let holdTimer: ReturnType<typeof setTimeout> | null = null;
     let lastPointer = { x: 0, y: 0 };
     let velocity = { x: 0, y: 0 };
 
@@ -233,6 +351,11 @@ export default function SphereGalleryCanvas() {
       dragging = true;
       lastPointer = { x: e.clientX, y: e.clientY };
       velocity = { x: 0, y: 0 };
+
+      if (holdTimer) clearTimeout(holdTimer);
+      holdTimer = setTimeout(() => {
+        holding = true;
+      }, HOLD_THRESHOLD_MS);
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -251,6 +374,11 @@ export default function SphereGalleryCanvas() {
 
     const onPointerUp = () => {
       dragging = false;
+      holding = false;
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+      }
     };
 
     window.addEventListener('pointerdown', onPointerDown);
@@ -264,14 +392,16 @@ export default function SphereGalleryCanvas() {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
+      const pixelRatio = renderer.getPixelRatio();
+      uniforms.uResolution.value.set(w * pixelRatio, h * pixelRatio);
     };
     const ro = new ResizeObserver(resize);
     ro.observe(frame);
     resize();
 
     let raf = 0;
-    const animate = () => {
-      raf = requestAnimationFrame(animate);
+    const animateLoop = () => {
+      raf = requestAnimationFrame(animateLoop);
 
       if (!dragging) {
         // Momentum: pan keeps drifting with decaying velocity after release
@@ -291,33 +421,36 @@ export default function SphereGalleryCanvas() {
       offsetX = offsetX % 1;
       offsetY = offsetY % 1;
 
-      // Curvature target is simply "are you currently pressing and
-      // dragging" — not tied to speed at all, matching "clicked and
-      // dragged = sphere, released = flat" exactly.
-      const targetCurvature = dragging ? 1 : 0;
-      currentCurvature += (targetCurvature - currentCurvature) * CURVATURE_EASE;
-
-      uniforms.uCurvature.value = currentCurvature;
+      // Curvature target reads from `holding`, not `dragging` — see the
+      // comment above onPointerDown for why. Skipped entirely while the
+      // intro is still playing, since that animation owns uCurvature
+      // during that window instead.
+      if (!introActive && !exiting) {
+        const targetCurvature = holding ? 1 : 0;
+        currentCurvature += (targetCurvature - currentCurvature) * CURVATURE_EASE;
+        uniforms.uCurvature.value = currentCurvature;
+      }
       uniforms.uOffset.value.set(offsetX, offsetY);
 
       renderer.render(scene, camera);
     };
-    raf = requestAnimationFrame(animate);
+    raf = requestAnimationFrame(animateLoop);
 
     return () => {
       disposed = true;
+      sceneApiRef.current = null;
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
+      if (holdTimer) clearTimeout(holdTimer);
+      introControls?.stop();
+      revealControls?.stop();
       geometry.dispose();
       material.dispose();
       loadedTexture?.dispose();
-      bgGeometry.dispose();
-      bgMaterial.dispose();
-      bgTexture.dispose();
       renderer.dispose();
     };
   }, []);
@@ -327,4 +460,6 @@ export default function SphereGalleryCanvas() {
       <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
     </div>
   );
-}
+});
+
+export default SphereGalleryCanvas;
