@@ -464,7 +464,7 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function Spher
     <div
       ref={frameRef}
       className="fixed inset-0"
-      style={{ cursor: 'grab', touchAction: 'none', width: '100vw', height: '100vh' }}
+      style={{ cursor: 'grab', touchAction: 'none', width: '149.25vw', height: '149.25vh' }}
     >
       <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
     </div>
