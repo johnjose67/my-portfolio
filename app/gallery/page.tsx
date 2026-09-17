@@ -23,7 +23,7 @@ export default function Gallery() {
   return (
     <main
       className="relative w-full h-screen overflow-hidden bg-white"
-      style={{ transform: 'scale(0.67)', transformOrigin: 'top left', width: '149.25%', height: '149.25%' }}
+      style={{ transform: 'scale(0.67)', transformOrigin: 'top left', width: '149.25vw', height: '149.25vh' }}
     >
       {/* Badge, same position/size as the homepage and projects page badge —
           this is now the ONLY gallery.png render on the page, since the
