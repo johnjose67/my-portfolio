@@ -639,7 +639,7 @@ export default function GalleryTunnel(props: GalleryTunnelProps) {
         >
             <canvas
                 ref={canvasRef}
-                style={{ display: "block", width: "100vw", height: "100vh", backgroundColor: background }}
+                style={{ display: "block", width: "100%", height: "100%", backgroundColor: background }}
             />
         </div>
     );

@@ -44,7 +44,7 @@ export default function Home() {
     >
       {/* Continuous background tunnel — fixed behind everything, no
           pointer interaction, runs on its own indefinitely */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
         <GalleryTunnel
           background="#FFFFFF"
           lineColor="#000000"
