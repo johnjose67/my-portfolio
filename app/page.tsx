@@ -38,7 +38,10 @@ export default function Home() {
   };
 
   return (
-    <main className="relative w-full min-h-screen overflow-hidden">
+    <main
+      className="relative w-full min-h-screen overflow-hidden"
+      style={{ transform: 'scale(0.67)', transformOrigin: 'top left', width: '149.25%', height: '149.25%' }}
+    >
       {/* Continuous background tunnel — fixed behind everything, no
           pointer interaction, runs on its own indefinitely */}
       <div className="fixed inset-0 z-0 pointer-events-none">
