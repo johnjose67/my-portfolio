@@ -25,6 +25,7 @@ const SCROLL_TO_Z = 0.05;
 const CAMERA_CHASE = 0.1;
 
 const FOG_FAR = NUM_SEGMENTS * SEGMENT_DEPTH * 0.95;
+const TUNNEL_SPAN = NUM_SEGMENTS * SEGMENT_DEPTH; // full loop distance a character travels before recycling
 
 type GalleryTunnelProps = {
     background?: string;
@@ -53,6 +54,7 @@ type GalleryTunnelProps = {
     characterOffsetX2?: number;
     characterDelaySeconds2?: number; // how many seconds behind the first character it trails
     characterTrimSeconds2?: number; // loop only the first N seconds of this video
+    characterRepeat?: number; // how many evenly-spaced copies of EACH character to spawn — 1 (default) is the original single-copy behavior; higher values close the gap between reappearances
     style?: CSSProperties;
 };
 
@@ -84,6 +86,7 @@ export default function GalleryTunnel(props: GalleryTunnelProps) {
         characterOffsetX2 = -0.65,
         characterDelaySeconds2 = 2,
         characterTrimSeconds2,
+        characterRepeat = 1,
         style,
     } = props;
 
@@ -415,58 +418,90 @@ export default function GalleryTunnel(props: GalleryTunnelProps) {
         }
 
         const characters: THREE.Mesh[] = [];
+        const repeatCount = Math.max(1, Math.round(characterRepeat));
+        const repeatSpacing = TUNNEL_SPAN / repeatCount; // evenly spread across one full loop
 
-        // Slot 1
+        // Slot 1 — spawns `repeatCount` copies, each offset by one
+        // repeat-spacing further back. All of them share the same
+        // recycling rule later (jump forward by a full span once passed),
+        // so more copies simply means a shorter wait between reappearances
+        // of this character, not a different mechanism.
         if (characterVideoUrl) {
-            characters.push(
-                createVideoCharacter(
-                    characterVideoUrl,
-                    characterOffsetX,
-                    characterWidth,
-                    -SEGMENT_DEPTH * 4,
-                    characterChromaKey,
-                    characterChromaKeyColor,
-                    characterChromaKeyThreshold,
-                    characterChromaKeySmoothing,
-                    characterTrimSeconds
-                )
-            );
+            for (let r = 0; r < repeatCount; r++) {
+                characters.push(
+                    createVideoCharacter(
+                        characterVideoUrl,
+                        characterOffsetX,
+                        characterWidth,
+                        -SEGMENT_DEPTH * 4 - r * repeatSpacing,
+                        characterChromaKey,
+                        characterChromaKeyColor,
+                        characterChromaKeyThreshold,
+                        characterChromaKeySmoothing,
+                        characterTrimSeconds
+                    )
+                );
+            }
         } else if (characterImageUrl) {
-            characters.push(
-                createCharacter(characterImageUrl, characterOffsetX, characterWidth, -SEGMENT_DEPTH * 4)
-            );
+            for (let r = 0; r < repeatCount; r++) {
+                characters.push(
+                    createCharacter(
+                        characterImageUrl,
+                        characterOffsetX,
+                        characterWidth,
+                        -SEGMENT_DEPTH * 4 - r * repeatSpacing
+                    )
+                );
+            }
         }
 
         // Slot 2 — starts further back by however far the tunnel covers
-        // in characterDelaySeconds2, so it consistently arrives later
+        // in characterDelaySeconds2, so it consistently arrives later.
+        // Same repeat treatment as slot 1 above.
         if (characterVideoUrl2 || characterImageUrl2) {
             const delayOffset = approxUnitsPerSecond * characterDelaySeconds2;
             const startZ2 = -SEGMENT_DEPTH * 4 - delayOffset; // starts further back, so it takes longer to arrive
 
             if (characterVideoUrl2) {
-                characters.push(
-                    createVideoCharacter(
-                        characterVideoUrl2,
-                        characterOffsetX2,
-                        characterWidth2,
-                        startZ2,
-                        characterChromaKey2,
-                        characterChromaKeyColor2,
-                        characterChromaKeyThreshold2,
-                        characterChromaKeySmoothing2,
-                        characterTrimSeconds2
-                    )
-                );
+                for (let r = 0; r < repeatCount; r++) {
+                    characters.push(
+                        createVideoCharacter(
+                            characterVideoUrl2,
+                            characterOffsetX2,
+                            characterWidth2,
+                            startZ2 - r * repeatSpacing,
+                            characterChromaKey2,
+                            characterChromaKeyColor2,
+                            characterChromaKeyThreshold2,
+                            characterChromaKeySmoothing2,
+                            characterTrimSeconds2
+                        )
+                    );
+                }
             } else if (characterImageUrl2) {
-                characters.push(
-                    createCharacter(characterImageUrl2, characterOffsetX2, characterWidth2, startZ2)
-                );
+                for (let r = 0; r < repeatCount; r++) {
+                    characters.push(
+                        createCharacter(
+                            characterImageUrl2,
+                            characterOffsetX2,
+                            characterWidth2,
+                            startZ2 - r * repeatSpacing
+                        )
+                    );
+                }
             }
         }
 
         const resize = () => {
-            const w = Math.max(1, frame.clientWidth);
-            const h = Math.max(1, frame.clientHeight);
+            // frame.clientWidth/clientHeight measure the PRE-scale layout
+            // size (149.25vw/vh from the page's scale-to-fit wrapper),
+            // not what's actually visible on screen. Correcting by the
+            // known 0.67 scale factor here gives the renderer a buffer
+            // size matching the TRUE visible size — without this, the
+            // buffer ends up ~1.5x oversized, which is what was causing
+            // rendering to fail entirely on more complex scenes.
+            const w = Math.max(1, frame.clientWidth * 0.67);
+            const h = Math.max(1, frame.clientHeight * 0.67);
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h, false);
@@ -588,6 +623,7 @@ export default function GalleryTunnel(props: GalleryTunnelProps) {
         characterOffsetX2,
         characterDelaySeconds2,
         characterTrimSeconds2,
+        characterRepeat,
     ]);
 
     return (

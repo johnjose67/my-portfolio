@@ -75,7 +75,7 @@ const INTRO_DURATION_S = 2.0;
 const INTRO_SLIDE_DISTANCE = 400; // world units below resting position to start from
 
 // --- Exit tuning (reverse of the intro, played on Home click) ---
-const EXIT_DURATION_S = 2.0;
+const EXIT_DURATION_S = 0.9;
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -387,8 +387,13 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function Spher
     window.addEventListener('pointercancel', onPointerUp);
 
     const resize = () => {
-      const w = Math.max(1, frame.clientWidth);
-      const h = Math.max(1, frame.clientHeight);
+      // Same correction as GalleryTunnel — frame.clientWidth/clientHeight
+      // measure the PRE-scale layout size (149.25vw/vh), not what's
+      // actually visible. Without correcting for the known 0.67 scale
+      // factor, the drawing buffer ends up ~1.5x oversized, which was
+      // enough to break rendering entirely on this more complex scene.
+      const w = Math.max(1, frame.clientWidth * 0.67);
+      const h = Math.max(1, frame.clientHeight * 0.67);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
