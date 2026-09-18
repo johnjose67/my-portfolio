@@ -64,7 +64,7 @@ export default function Home() {
       </div>
 
       {/* All page content sits above the tunnel */}
-      <div className="relative z-10 w-full min-h-screen">
+      <div className="relative z-10 w-full h-full">
       {/* Top nav row */}
       <p className="group absolute left-[51px] top-[50px]">
         <CubeFlipText

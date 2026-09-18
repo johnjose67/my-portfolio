@@ -49,7 +49,7 @@ export default function Projects() {
       </div>
 
       {/* All page content sits above the tunnel */}
-      <div className="relative z-10 w-full min-h-screen">
+      <div className="relative z-10 w-full h-full">
         {/* Home nav button — now triggers the reversed dissolve before navigating */}
         <a
           href="/"
