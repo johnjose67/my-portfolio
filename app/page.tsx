@@ -51,7 +51,8 @@ export default function Home() {
           lineOpacity={10}
           speed={10}
           characterVideoUrl="/videos/johnsitting.webm"
-          characterChromaKey={false}
+          characterChromaKey={true}
+          characterChromaKeyColor="#000000"
           characterWidth={0.4}
           characterOffsetX={0.65}
           characterVideoUrl2="/videos/johnstanding.webm"
