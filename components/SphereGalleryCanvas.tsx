@@ -75,7 +75,7 @@ const INTRO_DURATION_S = 2.0;
 const INTRO_SLIDE_DISTANCE = 400; // world units below resting position to start from
 
 // --- Exit tuning (reverse of the intro, played on Home click) ---
-const EXIT_DURATION_S = 0.9;
+const EXIT_DURATION_S = 2.0;
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
