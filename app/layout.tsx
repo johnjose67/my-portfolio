@@ -17,7 +17,7 @@ export default function RootLayout({
       lang="en"
       className={`${neueBit.variable} ${condiment.variable} ${thermochrome.variable}`}
     >
-      <body>
+      <body className="overflow-hidden">
         {children}
         {/* Full-screen cursor trail effect — sits above all page content,
             but pointer-events-none so it never blocks clicks/links underneath */}
