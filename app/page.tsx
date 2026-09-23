@@ -39,6 +39,11 @@ export default function Home() {
   // Mobile only — which tab (About Me / Contact) is active in the top
   // nav, swapping the content shown just below the badge.
   const [mobileTab, setMobileTab] = useState<'about' | 'contact' | null>(null);
+  // Tap-driven flip state for the mobile Projects/Gallery pills — CSS
+  // :hover (what desktop uses) doesn't reliably fire on a tap, so these
+  // are passed as CurvedFlipText's `triggered` prop instead.
+  const [projectsFlipped, setProjectsFlipped] = useState(false);
+  const [galleryFlipped, setGalleryFlipped] = useState(false);
   // Mobile's own badge ref/target — kept separate from the desktop
   // instance above since both are mounted simultaneously (CSS hidden vs
   // block), just one visible at a time depending on screen width.
@@ -47,6 +52,7 @@ export default function Home() {
 
   const handleMobileProjectsClick = async (e: React.MouseEvent) => {
     e.preventDefault();
+    setProjectsFlipped(true); // plays the CurvedFlipText flip right as the tap happens
     flushSync(() => setMobileBadgeTarget({ src: '/images/Projects.png', alt: 'Projects' }));
     await mobileBadgeRef.current?.dissolve();
     router.push('/projects');
@@ -54,6 +60,7 @@ export default function Home() {
 
   const handleMobileGalleryClick = async (e: React.MouseEvent) => {
     e.preventDefault();
+    setGalleryFlipped(true);
     flushSync(() => setMobileBadgeTarget({ src: '/images/gallery.png', alt: 'Gallery' }));
     await mobileBadgeRef.current?.dissolve();
     router.push('/gallery');
@@ -313,6 +320,7 @@ export default function Home() {
                 radius={17}
                 arcDegrees={22}
                 fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+                triggered={projectsFlipped}
               />
             </a>
             <a href="/gallery" onClick={handleMobileGalleryClick} className="group relative w-[140px] h-[40px]">
@@ -326,6 +334,7 @@ export default function Home() {
                 radius={17}
                 arcDegrees={22}
                 fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+                triggered={galleryFlipped}
               />
             </a>
           </div>

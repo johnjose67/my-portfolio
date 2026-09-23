@@ -19,6 +19,14 @@ import React from "react";
  * its distance from the center of the word — that's what creates the
  * staggered "wrap/peel" look rather than every letter flipping in lockstep.
  *
+ * Trigger modes:
+ *  - Default (no `triggered` prop passed): flips on CSS :hover via
+ *    group-hover, exactly as before — this is what desktop uses.
+ *  - Controlled (`triggered` explicitly passed as true/false): CSS hover
+ *    is bypassed entirely, and the flip state is driven directly by the
+ *    prop instead — for mobile/touch, where :hover doesn't reliably fire
+ *    on tap the way it does on desktop with a real mouse.
+ *
  * Tuning knobs:
  *  - radius:      how far the front/back faces sit apart in depth (bigger = more pronounced flip/bulge)
  *  - arcDegrees:  how much the word curves/tilts at rest (bigger = more dramatic curve)
@@ -33,6 +41,7 @@ interface CurvedFlipTextProps {
   fontClassName?: string;
   tiltFactor?: number; // how much each letter rotates to look "curved" — 0 = straight line
   bowFactor?: number; // how much edge letters dip/rise vertically — 0 = flat baseline
+  triggered?: boolean; // when passed, controls the flip directly instead of relying on CSS :hover — for tap-driven mobile use
 }
 
 export default function CurvedFlipText({
@@ -44,10 +53,12 @@ export default function CurvedFlipText({
   fontClassName = "",
   tiltFactor = 0,
   bowFactor = 0,
+  triggered,
 }: CurvedFlipTextProps) {
   const letters: string[] = text.split("");
   const mid = (letters.length - 1) / 2;
   const step = letters.length > 1 ? arcDegrees / (letters.length - 1) : 0;
+  const isControlled = triggered !== undefined;
 
   return (
     <span
@@ -71,11 +82,18 @@ export default function CurvedFlipText({
               }px)`,
             }}
           >
-            {/* Inner span: the actual flip. No inline `transform` here on
-                purpose — group-hover:[...] fully controls this element. */}
+            {/* Inner span: the actual flip. Uncontrolled (desktop): CSS
+                group-hover fully controls this, no inline transform.
+                Controlled (mobile): the `triggered` prop drives an
+                explicit inline transform instead, bypassing hover. */}
             <span
-              className="relative block [transform-style:preserve-3d] transition-transform duration-700 ease-in-out group-hover:[transform:rotateX(180deg)]"
-              style={{ transitionDelay: `${delay}ms` }}
+              className={`relative block [transform-style:preserve-3d] transition-transform duration-700 ease-in-out ${
+                isControlled ? "" : "group-hover:[transform:rotateX(180deg)]"
+              }`}
+              style={{
+                transitionDelay: `${delay}ms`,
+                ...(isControlled ? { transform: `rotateX(${triggered ? 180 : 0}deg)` } : {}),
+              }}
             >
               {/* front face — black */}
               <span

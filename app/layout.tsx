@@ -20,8 +20,10 @@ export default function RootLayout({
       <body className="overflow-hidden">
         {children}
         {/* Full-screen cursor trail effect — sits above all page content,
-            but pointer-events-none so it never blocks clicks/links underneath */}
-        <div className="fixed inset-0 pointer-events-none z-[9999]">
+            but pointer-events-none so it never blocks clicks/links underneath.
+            scale-90 below md shrinks it 10% for mobile only; md:scale-100
+            restores full size on desktop, completely unchanged. */}
+        <div className="fixed inset-0 pointer-events-none z-[9999] scale-90 md:scale-100">
           <AsciiCursor label={false} />
         </div>
       </body>
