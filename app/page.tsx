@@ -227,7 +227,7 @@ export default function Home() {
           background="#FFFFFF"
           lineColor="#000000"
           lineOpacity={10}
-          speed={10}
+          speed={28}
           characterVideoUrl="/videos/johnsitting.webm"
           characterChromaKey={false}
           characterWidth={0.4}
@@ -302,27 +302,31 @@ export default function Home() {
           <div style={{ flexGrow: 0.1 }} />
 
           <div className="flex items-center justify-center gap-6">
-            <a href="/projects" onClick={handleMobileProjectsClick} className="relative w-[140px] h-[40px]">
+            <a href="/projects" onClick={handleMobileProjectsClick} className="group relative w-[140px] h-[40px]">
               <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
               </svg>
-              <span
-                className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
-                style={{ letterSpacing: '0.03em' }}
-              >
-                Projects
-              </span>
+              <CurvedFlipText
+                text="Projects"
+                frontColor="#000000"
+                backColor="#FC8EF1"
+                radius={17}
+                arcDegrees={22}
+                fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+              />
             </a>
-            <a href="/gallery" onClick={handleMobileGalleryClick} className="relative w-[140px] h-[40px]">
+            <a href="/gallery" onClick={handleMobileGalleryClick} className="group relative w-[140px] h-[40px]">
               <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
               </svg>
-              <span
-                className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
-                style={{ letterSpacing: '0.03em' }}
-              >
-                Gallery
-              </span>
+              <CurvedFlipText
+                text="Gallery"
+                frontColor="#000000"
+                backColor="#FC8EF1"
+                radius={17}
+                arcDegrees={22}
+                fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+              />
             </a>
           </div>
 
