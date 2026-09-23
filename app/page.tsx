@@ -219,7 +219,7 @@ export default function Home() {
         the Figma mobile design: ABOUT ME/CONTACT toggle swaps the
         content block between bio text and contact details, badge and
         pill navigation keep the same dissolve behavior as desktop. */}
-    <div className="block md:hidden relative w-full min-h-screen overflow-hidden bg-white">
+    <div className="block md:hidden relative w-full h-[100dvh] overflow-hidden bg-white">
       {/* Tunnel background — no scale wrapper needed here, since mobile
           is natively responsive rather than a scaled-down desktop layout */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -241,15 +241,15 @@ export default function Home() {
         />
       </div>
 
-      <div className="relative z-10 w-full min-h-screen px-6 pt-8 pb-8 flex flex-col">
+      <div className="relative z-10 w-full h-[100dvh] px-6 pt-6 pb-6 flex flex-col">
         {/* Top nav row */}
         <div className="flex items-start justify-between">
           <p className="text-black text-[14px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold">
             Home
           </p>
-          <div className="text-right text-[14px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold leading-[20px]">
+          <div className="text-right text-[12px] leading-[13px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold" style={{ letterSpacing: '0.03em' }}>
             <p>
-              [{' '}
+              <span className="text-black">[</span>{' '}
               <button
                 onClick={() => setMobileTab('about')}
                 style={{ color: mobileTab === 'about' ? '#FC8EF1' : '#000000' }}
@@ -264,22 +264,31 @@ export default function Home() {
               >
                 Contact
               </button>{' '}
-              ]
+              <span className="text-black">]</span>
             </p>
           </div>
         </div>
 
         {/* Heading + toggled content block */}
-        <div className="mt-12 text-center px-2">
-          <p className="text-black text-[16px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold mb-4">
+        <div className="mt-6 text-center px-2">
+          <p
+            className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold mb-4"
+            style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
+          >
             Hi, I am John.
           </p>
           {mobileTab === 'about' ? (
-            <p className="text-black text-[14px] leading-[19px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold">
+            <p
+              className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
+            >
               I'm a passionate interaction designer dedicated to crafting exceptional user experiences by empathizing with and understanding people's perspectives. My expertise extends to enhancing both the UX and UI of products, ensuring they are not only user-friendly but visually appealing.
             </p>
           ) : (
-            <div className="text-black text-[14px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold leading-[20px]">
+            <div
+              className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
+            >
               <p>Brisbane, Australia</p>
               <p>Available for freelance works</p>
               <p>johnjoro15@gmail.com</p>
@@ -290,7 +299,7 @@ export default function Home() {
         {/* Badge — same dissolve mechanic as desktop, own ref/target
             state so it doesn't interfere with the desktop instance
             (both are mounted at once, just one is display:none) */}
-        <div className="mx-auto mt-12 w-full max-w-[340px] aspect-[672/430]">
+        <div className="mx-auto mt-6 w-full max-w-[320px] aspect-[672/430]">
           <BadgeDissolve
             ref={mobileBadgeRef}
             frontSrc="/images/Home-Name-Tag.png"
@@ -302,21 +311,30 @@ export default function Home() {
           />
         </div>
 
-        {/* Nav pills */}
-        <div className="mt-10 flex items-center justify-center gap-6">
-          <a
-            href="/projects"
-            onClick={handleMobileProjectsClick}
-            className="border border-[#FC8EF1] rounded-full px-8 py-3 text-black text-[14px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
-          >
-            Projects
+        {/* Nav pills — same SVG ellipse as desktop, just scaled down via
+            a smaller container (the viewBox keeps the exact proportions) */}
+        <div className="mt-6 flex items-center justify-center gap-6">
+          <a href="/projects" onClick={handleMobileProjectsClick} className="relative w-[140px] h-[40px]">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
+            </svg>
+            <span
+              className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+              style={{ letterSpacing: '0.03em' }}
+            >
+              Projects
+            </span>
           </a>
-          <a
-            href="/gallery"
-            onClick={handleMobileGalleryClick}
-            className="border border-[#FC8EF1] rounded-full px-8 py-3 text-black text-[14px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
-          >
-            Gallery
+          <a href="/gallery" onClick={handleMobileGalleryClick} className="relative w-[140px] h-[40px]">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
+            </svg>
+            <span
+              className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+              style={{ letterSpacing: '0.03em' }}
+            >
+              Gallery
+            </span>
           </a>
         </div>
 
