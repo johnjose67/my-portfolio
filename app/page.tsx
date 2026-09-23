@@ -226,13 +226,15 @@ export default function Home() {
         the Figma mobile design: ABOUT ME/CONTACT toggle swaps the
         content block between bio text and contact details, badge and
         pill navigation keep the same dissolve behavior as desktop. */}
-    <div className="block md:hidden relative w-full h-[100dvh] overflow-hidden bg-white">
+    <div className={`block md:hidden relative w-full h-[100dvh] overflow-hidden ${mobileTab ? 'bg-black' : 'bg-white'}`}>
       {/* Tunnel background — no scale wrapper needed here, since mobile
-          is natively responsive rather than a scaled-down desktop layout */}
+          is natively responsive rather than a scaled-down desktop layout.
+          Inverted (black bg/white lines) for EITHER full-screen takeover
+          (About Me or Contact), not just About Me specifically. */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <GalleryTunnel
-          background="#FFFFFF"
-          lineColor="#000000"
+          background={mobileTab ? '#000000' : '#FFFFFF'}
+          lineColor={mobileTab ? '#FFFFFF' : '#000000'}
           lineOpacity={10}
           speed={28}
           characterVideoUrl="/videos/johnsitting.webm"
@@ -248,6 +250,7 @@ export default function Home() {
         />
       </div>
 
+      {mobileTab === null ? (
       <div className="relative z-10 w-full h-[100dvh] px-6 pt-6 pb-6 flex flex-col">
         {/* Top nav row */}
         <div className="flex items-start justify-between">
@@ -390,6 +393,54 @@ export default function Home() {
           </div>
         </div>
       </div>
+      ) : (
+        /* Full-screen takeover — About Me or Contact. Replaces the
+           entire normal view (nav/badge/pills/footer all hidden) while
+           either tab is active; Close is the only way back. */
+        <div className="relative z-10 w-full h-[100dvh] px-8 pt-6 pb-10 flex flex-col items-center">
+          <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <p
+              className="text-[16px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold mb-6"
+              style={{ color: '#55D657', lineHeight: '17px', letterSpacing: '0.03em' }}
+            >
+              Hi, I am John.
+            </p>
+            <p
+              className="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              style={{ color: '#55D657', lineHeight: '13px', letterSpacing: '0.03em' }}
+            >
+              {mobileTab === 'about' ? (
+                "An interaction designer with 3 years of experience turning ideas into intuitive, thoughtful digital experiences. When I'm not deep in a design file, you'll find me behind a camera chasing good light, or being a very devoted cat person. I care about designing things that feel as good as they work."
+              ) : (
+                <>
+                  Brisbane, Australia
+                  <br />
+                  Available for freelance works
+                  <br />
+                  johnjoro15@gmail.com
+                </>
+              )}
+            </p>
+          </div>
+
+          {/* Close — same CubeFlipText interaction as the social links,
+              returns to the normal view (doesn't navigate pages). */}
+          <button onClick={() => setMobileTab(null)} className="group relative flex items-center gap-1">
+            <span className="text-white text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold" style={{ letterSpacing: '0.03em' }}>
+              [
+            </span>
+            <CubeFlipText
+              text="Close"
+              frontColor="#FFFFFF"
+              bottomColor="#FC8EF1"
+              fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+            />
+            <span className="text-white text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold" style={{ letterSpacing: '0.03em' }}>
+              ]
+            </span>
+          </button>
+        </div>
+      )}
     </div>
     </>
   );
