@@ -38,7 +38,7 @@ export default function Home() {
 
   // Mobile only — which tab (About Me / Contact) is active in the top
   // nav, swapping the content shown just below the badge.
-  const [mobileTab, setMobileTab] = useState<'about' | 'contact'>('about');
+  const [mobileTab, setMobileTab] = useState<'about' | 'contact' | null>(null);
   // Mobile's own badge ref/target — kept separate from the desktop
   // instance above since both are mounted simultaneously (CSS hidden vs
   // block), just one visible at a time depending on screen width.
@@ -244,14 +244,21 @@ export default function Home() {
       <div className="relative z-10 w-full h-[100dvh] px-6 pt-6 pb-6 flex flex-col">
         {/* Top nav row */}
         <div className="flex items-start justify-between">
-          <p className="text-black text-[14px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold">
+          <p
+            className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+            style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
+          >
             Home
           </p>
-          <div className="text-right text-[12px] leading-[13px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold" style={{ letterSpacing: '0.03em' }}>
+          <div
+            className="text-right text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+            style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
+          >
             <p>
               <span className="text-black">[</span>{' '}
               <button
                 onClick={() => setMobileTab('about')}
+                className="uppercase"
                 style={{ color: mobileTab === 'about' ? '#FC8EF1' : '#000000' }}
               >
                 About Me
@@ -260,6 +267,7 @@ export default function Home() {
             <p>
               <button
                 onClick={() => setMobileTab('contact')}
+                className="uppercase"
                 style={{ color: mobileTab === 'contact' ? '#FC8EF1' : '#000000' }}
               >
                 Contact
@@ -267,33 +275,6 @@ export default function Home() {
               <span className="text-black">]</span>
             </p>
           </div>
-        </div>
-
-        {/* Heading + toggled content block */}
-        <div className="mt-6 text-center px-2">
-          <p
-            className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold mb-4"
-            style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
-          >
-            Hi, I am John.
-          </p>
-          {mobileTab === 'about' ? (
-            <p
-              className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
-              style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
-            >
-              I'm a passionate interaction designer dedicated to crafting exceptional user experiences by empathizing with and understanding people's perspectives. My expertise extends to enhancing both the UX and UI of products, ensuring they are not only user-friendly but visually appealing.
-            </p>
-          ) : (
-            <div
-              className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
-              style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
-            >
-              <p>Brisbane, Australia</p>
-              <p>Available for freelance works</p>
-              <p>johnjoro15@gmail.com</p>
-            </div>
-          )}
         </div>
 
         {/* Badge — same dissolve mechanic as desktop, own ref/target
@@ -341,17 +322,47 @@ export default function Home() {
         {/* Spacer pushes the footer to the bottom of the viewport */}
         <div className="flex-1" />
 
-        {/* Footer row */}
-        <div className="flex items-end justify-between text-black text-[13px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold leading-[18px]">
-          <p>
+        {/* Footer row — social links now use the same CubeFlipText
+            interaction as desktop, real <a> tags instead of plain text */}
+        <div className="flex items-end justify-between">
+          <p
+            className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+            style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
+          >
             27° 28&apos; 04&quot; S,
             <br />
             153° 01&apos; 41&quot; E
           </p>
-          <div className="text-right">
-            <p>[ Behance</p>
-            <p>Linkedin</p>
-            <p>Medium ]</p>
+          <div
+            className="flex items-center gap-3 text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+            style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
+          >
+            <span>[</span>
+            <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="group">
+              <CubeFlipText
+                text="Behance"
+                frontColor="#000000"
+                bottomColor="#FC8EF1"
+                fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              />
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="group">
+              <CubeFlipText
+                text="Linkedin"
+                frontColor="#000000"
+                bottomColor="#FC8EF1"
+                fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              />
+            </a>
+            <a href="https://medium.com" target="_blank" rel="noopener noreferrer" className="group">
+              <CubeFlipText
+                text="Medium"
+                frontColor="#000000"
+                bottomColor="#FC8EF1"
+                fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              />
+            </a>
+            <span>]</span>
           </div>
         </div>
       </div>
