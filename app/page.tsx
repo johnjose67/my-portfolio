@@ -277,50 +277,57 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Badge — same dissolve mechanic as desktop, own ref/target
-            state so it doesn't interfere with the desktop instance
-            (both are mounted at once, just one is display:none) */}
-        <div className="mx-auto mt-6 w-full max-w-[320px] aspect-[672/430]">
-          <BadgeDissolve
-            ref={mobileBadgeRef}
-            frontSrc="/images/Home-Name-Tag.png"
-            frontAlt="John Jose"
-            backSrc={mobileBadgeTarget.src}
-            backAlt={mobileBadgeTarget.alt}
-            width={340}
-            height={218}
-          />
-        </div>
+        {/* Middle section: badge is vertically centered in the space
+            between the top nav and footer, and the pills sit exactly
+            10% of the way through the remaining space below the badge.
+            The 1 / 0.1 / 0.9 flex-grow ratios achieve both at once —
+            0.1 + 0.9 = 1, matching the top spacer, so the badge stays
+            centered regardless of viewport height, and the pills land
+            precisely at the 10% mark of the space below it. */}
+        <div className="flex-1 flex flex-col items-center min-h-0">
+          <div style={{ flexGrow: 1 }} />
 
-        {/* Nav pills — same SVG ellipse as desktop, just scaled down via
-            a smaller container (the viewBox keeps the exact proportions) */}
-        <div className="mt-6 flex items-center justify-center gap-6">
-          <a href="/projects" onClick={handleMobileProjectsClick} className="relative w-[140px] h-[40px]">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
-            </svg>
-            <span
-              className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
-              style={{ letterSpacing: '0.03em' }}
-            >
-              Projects
-            </span>
-          </a>
-          <a href="/gallery" onClick={handleMobileGalleryClick} className="relative w-[140px] h-[40px]">
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
-            </svg>
-            <span
-              className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
-              style={{ letterSpacing: '0.03em' }}
-            >
-              Gallery
-            </span>
-          </a>
-        </div>
+          <div className="w-full max-w-[320px] aspect-[672/430]">
+            <BadgeDissolve
+              ref={mobileBadgeRef}
+              frontSrc="/images/Home-Name-Tag.png"
+              frontAlt="John Jose"
+              backSrc={mobileBadgeTarget.src}
+              backAlt={mobileBadgeTarget.alt}
+              width={340}
+              height={218}
+            />
+          </div>
 
-        {/* Spacer pushes the footer to the bottom of the viewport */}
-        <div className="flex-1" />
+          <div style={{ flexGrow: 0.1 }} />
+
+          <div className="flex items-center justify-center gap-6">
+            <a href="/projects" onClick={handleMobileProjectsClick} className="relative w-[140px] h-[40px]">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
+              </svg>
+              <span
+                className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+                style={{ letterSpacing: '0.03em' }}
+              >
+                Projects
+              </span>
+            </a>
+            <a href="/gallery" onClick={handleMobileGalleryClick} className="relative w-[140px] h-[40px]">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 200 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="100" cy="28" rx="99.5" ry="27.5" stroke="#FC8EF1" strokeWidth="1" />
+              </svg>
+              <span
+                className="absolute inset-0 flex items-center justify-center text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-medium"
+                style={{ letterSpacing: '0.03em' }}
+              >
+                Gallery
+              </span>
+            </a>
+          </div>
+
+          <div style={{ flexGrow: 0.9 }} />
+        </div>
 
         {/* Footer row — social links now use the same CubeFlipText
             interaction as desktop, real <a> tags instead of plain text */}
@@ -334,18 +341,20 @@ export default function Home() {
             153° 01&apos; 41&quot; E
           </p>
           <div
-            className="flex items-center gap-3 text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+            className="flex flex-col items-end text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
             style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
           >
-            <span>[</span>
-            <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="group">
-              <CubeFlipText
-                text="Behance"
-                frontColor="#000000"
-                bottomColor="#FC8EF1"
-                fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
-              />
-            </a>
+            <div className="flex items-center gap-1">
+              <span>[</span>
+              <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="group">
+                <CubeFlipText
+                  text="Behance"
+                  frontColor="#000000"
+                  bottomColor="#FC8EF1"
+                  fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                />
+              </a>
+            </div>
             <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="group">
               <CubeFlipText
                 text="Linkedin"
@@ -354,15 +363,17 @@ export default function Home() {
                 fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
               />
             </a>
-            <a href="https://medium.com" target="_blank" rel="noopener noreferrer" className="group">
-              <CubeFlipText
-                text="Medium"
-                frontColor="#000000"
-                bottomColor="#FC8EF1"
-                fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
-              />
-            </a>
-            <span>]</span>
+            <div className="flex items-center gap-1">
+              <a href="https://medium.com" target="_blank" rel="noopener noreferrer" className="group">
+                <CubeFlipText
+                  text="Medium"
+                  frontColor="#000000"
+                  bottomColor="#FC8EF1"
+                  fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                />
+              </a>
+              <span>]</span>
+            </div>
           </div>
         </div>
       </div>
