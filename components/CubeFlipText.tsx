@@ -7,6 +7,7 @@ type CubeFlipTextProps = {
   fontClassName?: string;
   depth?: number; // px — how far each face is pushed out from the cube's center pivot
   duration?: number; // ms
+  triggered?: boolean; // when passed, controls the flip directly instead of relying on CSS :hover — for tap-driven mobile use
 };
 
 export default function CubeFlipText({
@@ -16,25 +17,41 @@ export default function CubeFlipText({
   fontClassName = '',
   depth = 12,
   duration = 450,
+  triggered,
 }: CubeFlipTextProps) {
   if (!text) return null;
+
+  const isControlled = triggered !== undefined;
 
   return (
     <span className="relative inline-block" style={{ perspective: 300 }}>
       {/* The cube itself — only THIS element's rotation is animated.
           Each face inside keeps a fixed local transform representing its
           position on the cube; rotating the whole cube is what makes the
-          faces swing, not animating them individually. */}
+          faces swing, not animating them individually.
+          Uncontrolled (desktop): CSS .group:hover fully controls this.
+          Controlled (mobile): `triggered` drives an explicit inline
+          transform instead, bypassing hover entirely. */}
       <span
         className="cube-wrap relative inline-block [transform-style:preserve-3d]"
-        style={{ '--dur': `${duration}ms` } as React.CSSProperties}
+        style={{
+          '--dur': `${duration}ms`,
+          ...(isControlled
+            ? { transform: `rotateX(${triggered ? 90 : 0}deg)`, transition: `transform ${duration}ms ease-in-out` }
+            : {}),
+        } as React.CSSProperties}
       >
         {/* Front face — normal document flow, so it's what actually
             establishes the box's real width/height from the text itself.
-            Fades out as it rotates away on hover. */}
+            Fades out as it rotates away. */}
         <span
           className={`cube-face-front inline-block [backface-visibility:hidden] ${fontClassName}`}
-          style={{ color: frontColor, transform: `translateZ(${depth}px)`, whiteSpace: 'pre' }}
+          style={{
+            color: frontColor,
+            transform: `translateZ(${depth}px)`,
+            whiteSpace: 'pre',
+            ...(isControlled ? { opacity: triggered ? 0 : 1, transition: `opacity ${duration}ms ease-in-out` } : {}),
+          }}
         >
           {text}
         </span>
@@ -42,13 +59,14 @@ export default function CubeFlipText({
         {/* Bottom face — sits at rotateX(-90deg), which points it downward
             and hides it below the front face at rest. Absolutely
             positioned to exactly overlay the front face's box. Fades in
-            as it rotates into view on hover. */}
+            as it rotates into view. */}
         <span
           className={`cube-face-bottom absolute inset-0 flex items-center justify-center [backface-visibility:hidden] ${fontClassName}`}
           style={{
             color: bottomColor,
             transform: `rotateX(-90deg) translateZ(${depth}px)`,
             whiteSpace: 'pre',
+            ...(isControlled ? { opacity: triggered ? 1 : 0, transition: `opacity ${duration}ms ease-in-out` } : {}),
           }}
         >
           {text}

@@ -50,6 +50,40 @@ export default function Home() {
   const mobileBadgeRef = useRef<BadgeDissolveHandle>(null);
   const [mobileBadgeTarget, setMobileBadgeTarget] = useState({ src: '/images/Projects.png', alt: 'Projects' });
 
+  // Same tap-triggered pattern extended to Home, the About Me/Contact
+  // toggle, and the social links — each waits for the full flip
+  // animation to finish before doing anything (switching tab, opening a
+  // link), rather than acting immediately on tap.
+  const FLIP_DURATION = 450; // matches CubeFlipText's default duration
+  const [homeFlipped, setHomeFlipped] = useState(false);
+  const [aboutFlipped, setAboutFlipped] = useState(false);
+  const [contactFlipped, setContactFlipped] = useState(false);
+  const [behanceFlipped, setBehanceFlipped] = useState(false);
+  const [linkedinFlipped, setLinkedinFlipped] = useState(false);
+  const [mediumFlipped, setMediumFlipped] = useState(false);
+
+  const handleMobileHomeTap = () => {
+    setHomeFlipped(true);
+    setTimeout(() => setHomeFlipped(false), FLIP_DURATION);
+  };
+
+  const handleMobileTabTap = (tab: 'about' | 'contact', setFlipped: (v: boolean) => void) => () => {
+    setFlipped(true);
+    setTimeout(() => {
+      setMobileTab(tab);
+      setFlipped(false);
+    }, FLIP_DURATION);
+  };
+
+  const handleMobileSocialTap = (url: string, setFlipped: (v: boolean) => void) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setFlipped(true);
+    setTimeout(() => {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setFlipped(false);
+    }, FLIP_DURATION);
+  };
+
   const handleMobileProjectsClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     setProjectsFlipped(true); // plays the CurvedFlipText flip right as the tap happens
@@ -254,33 +288,40 @@ export default function Home() {
       <div className="relative z-10 w-full h-[100dvh] px-6 pt-6 pb-6 flex flex-col">
         {/* Top nav row */}
         <div className="flex items-start justify-between">
-          <p
-            className="text-black text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
-            style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
-          >
-            Home
-          </p>
+          <button onClick={handleMobileHomeTap} className="group relative">
+            <CubeFlipText
+              text="Home"
+              frontColor="#000000"
+              bottomColor="#FC8EF1"
+              fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              triggered={homeFlipped}
+            />
+          </button>
           <div
             className="text-right text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
             style={{ lineHeight: '13px', letterSpacing: '0.03em' }}
           >
             <p>
               <span className="text-black">[</span>{' '}
-              <button
-                onClick={() => setMobileTab('about')}
-                className="uppercase"
-                style={{ color: mobileTab === 'about' ? '#FC8EF1' : '#000000' }}
-              >
-                About Me
+              <button onClick={handleMobileTabTap('about', setAboutFlipped)} className="group relative inline-block align-middle">
+                <CubeFlipText
+                  text="About Me"
+                  frontColor="#000000"
+                  bottomColor="#FC8EF1"
+                  fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                  triggered={aboutFlipped}
+                />
               </button>
             </p>
             <p>
-              <button
-                onClick={() => setMobileTab('contact')}
-                className="uppercase"
-                style={{ color: mobileTab === 'contact' ? '#FC8EF1' : '#000000' }}
-              >
-                Contact
+              <button onClick={handleMobileTabTap('contact', setContactFlipped)} className="group relative inline-block align-middle">
+                <CubeFlipText
+                  text="Contact"
+                  frontColor="#000000"
+                  bottomColor="#FC8EF1"
+                  fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                  triggered={contactFlipped}
+                />
               </button>{' '}
               <span className="text-black">]</span>
             </p>
@@ -362,30 +403,33 @@ export default function Home() {
           >
             <div className="flex items-center gap-1">
               <span>[</span>
-              <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="group">
+              <a href="https://behance.net" onClick={handleMobileSocialTap('https://behance.net', setBehanceFlipped)} className="group">
                 <CubeFlipText
                   text="Behance"
                   frontColor="#000000"
                   bottomColor="#FC8EF1"
                   fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                  triggered={behanceFlipped}
                 />
               </a>
             </div>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="group">
+            <a href="https://linkedin.com" onClick={handleMobileSocialTap('https://linkedin.com', setLinkedinFlipped)} className="group">
               <CubeFlipText
                 text="Linkedin"
                 frontColor="#000000"
                 bottomColor="#FC8EF1"
                 fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                triggered={linkedinFlipped}
               />
             </a>
             <div className="flex items-center gap-1">
-              <a href="https://medium.com" target="_blank" rel="noopener noreferrer" className="group">
+              <a href="https://medium.com" onClick={handleMobileSocialTap('https://medium.com', setMediumFlipped)} className="group">
                 <CubeFlipText
                   text="Medium"
                   frontColor="#000000"
                   bottomColor="#FC8EF1"
                   fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                  triggered={mediumFlipped}
                 />
               </a>
               <span>]</span>

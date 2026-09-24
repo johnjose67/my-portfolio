@@ -5,6 +5,12 @@ import './globals.css';
 export const metadata = {
   title: 'John Jose — Interaction Designer',
   description: 'Portfolio of John Jose, interaction designer based in Brisbane, Australia.',
+  // Stops iOS Safari's automatic email/phone-number detection from
+  // auto-styling plain text as an underlined link — this, not any CSS,
+  // was the actual cause of the underline under the email address.
+  other: {
+    'format-detection': 'telephone=no, email=no, address=no',
+  },
 };
 
 export default function RootLayout({
