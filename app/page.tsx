@@ -8,6 +8,7 @@ import ScatterText from '@/components/ScatterText';
 import CurvedFlipText from '@/components/CurvedFlipText';
 import CubeFlipText from '@/components/CubeFlipText';
 import BadgeDissolve, { type BadgeDissolveHandle } from '@/components/BadgeDissolve';
+import FullScreenTileDissolve, { type FullScreenTileDissolveHandle } from '@/components/FullScreenTileDissolve';
 
 // Desktop-first build matching the Figma "My Portfolio" frame.
 // Mobile layout added below, shown only under the md breakpoint.
@@ -49,6 +50,10 @@ export default function Home() {
   // block), just one visible at a time depending on screen width.
   const mobileBadgeRef = useRef<BadgeDissolveHandle>(null);
   const [mobileBadgeTarget, setMobileBadgeTarget] = useState({ src: '/images/Projects.png', alt: 'Projects' });
+  // Full-screen tile-dissolve overlay for the About Me/Contact/Close
+  // transitions — same shattered-tile mechanic as the badge, scaled to
+  // cover the whole screen.
+  const fullScreenDissolveRef = useRef<FullScreenTileDissolveHandle>(null);
 
   // Same tap-triggered pattern extended to Home, the About Me/Contact
   // toggle, and the social links — each waits for the full flip
@@ -67,12 +72,26 @@ export default function Home() {
     setTimeout(() => setHomeFlipped(false), FLIP_DURATION);
   };
 
-  const handleMobileTabTap = (tab: 'about' | 'contact', setFlipped: (v: boolean) => void) => () => {
+  const handleMobileTabTap = (tab: 'about' | 'contact', setFlipped: (v: boolean) => void) => async () => {
     setFlipped(true);
-    setTimeout(() => {
-      setMobileTab(tab);
-      setFlipped(false);
-    }, FLIP_DURATION);
+    await new Promise((r) => setTimeout(r, FLIP_DURATION));
+    // Covers the screen in whichever color we're LEAVING (white if
+    // coming from the normal view, black if switching between About
+    // Me and Contact directly), then switches the view underneath
+    // WHILE the tiles are dissolving away, so the new view is what's
+    // revealed as they clear.
+    const leavingColor = mobileTab ? '#000000' : '#FFFFFF';
+    const dissolvePromise = fullScreenDissolveRef.current?.dissolve(leavingColor);
+    setMobileTab(tab);
+    await dissolvePromise;
+    setFlipped(false);
+  };
+
+  const handleMobileCloseTap = async () => {
+    // Always leaving a black takeover view when Close is tapped.
+    const dissolvePromise = fullScreenDissolveRef.current?.dissolve('#000000');
+    setMobileTab(null);
+    await dissolvePromise;
   };
 
   const handleMobileSocialTap = (url: string, setFlipped: (v: boolean) => void) => (e: React.MouseEvent) => {
@@ -261,6 +280,12 @@ export default function Home() {
         content block between bio text and contact details, badge and
         pill navigation keep the same dissolve behavior as desktop. */}
     <div className={`block md:hidden relative w-full h-[100dvh] overflow-hidden ${mobileTab ? 'bg-black' : 'bg-white'}`}>
+      {/* Tile-dissolve overlay for the About Me/Contact/Close
+          transitions — mounted once here, outside the view-switching
+          ternary below, so it persists regardless of which view is
+          currently showing. */}
+      <FullScreenTileDissolve ref={fullScreenDissolveRef} />
+
       {/* Tunnel background — no scale wrapper needed here, since mobile
           is natively responsive rather than a scaled-down desktop layout.
           Inverted (black bg/white lines) for EITHER full-screen takeover
@@ -471,7 +496,7 @@ export default function Home() {
 
           {/* Close — same CubeFlipText interaction as the social links,
               returns to the normal view (doesn't navigate pages). */}
-          <button onClick={() => setMobileTab(null)} className="group relative flex items-center gap-1">
+          <button onClick={handleMobileCloseTap} className="group relative flex items-center gap-1">
             <span className="text-white text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold" style={{ letterSpacing: '0.03em' }}>
               [
             </span>
