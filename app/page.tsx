@@ -65,6 +65,7 @@ export default function Home() {
   const [behanceFlipped, setBehanceFlipped] = useState(false);
   const [linkedinFlipped, setLinkedinFlipped] = useState(false);
   const [mediumFlipped, setMediumFlipped] = useState(false);
+  const [closeFlipped, setCloseFlipped] = useState(false);
 
   const handleMobileHomeTap = () => {
     setHomeFlipped(true);
@@ -87,10 +88,13 @@ export default function Home() {
   };
 
   const handleMobileCloseTap = async () => {
+    setCloseFlipped(true);
+    await new Promise((r) => setTimeout(r, FLIP_DURATION));
     // Always leaving a black takeover view when Close is tapped.
     const playPromise = crtRef.current?.play('#000000');
     setMobileTab(null);
     await playPromise;
+    setCloseFlipped(false);
   };
 
   const handleMobileSocialTap = (url: string, setFlipped: (v: boolean) => void) => (e: React.MouseEvent) => {
@@ -494,18 +498,32 @@ export default function Home() {
           </div>
 
           {/* Close — same CubeFlipText interaction as the social links,
-              returns to the normal view (doesn't navigate pages). */}
+              flip plays fully before returning to the normal view.
+              An identical explicit line-height on all three pieces
+              (brackets + CubeFlipText) is what actually forces them to
+              the same box height — the parent's flex items-center then
+              centers each by that height, sidestepping any baseline
+              quirk from CubeFlipText's internal 3D transforms entirely. */}
           <button onClick={handleMobileCloseTap} className="group relative flex items-center gap-1">
-            <span className="text-white text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold" style={{ letterSpacing: '0.03em' }}>
+            <span
+              className="text-white text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              style={{ letterSpacing: '0.03em', lineHeight: '13px' }}
+            >
               [
             </span>
-            <CubeFlipText
-              text="Close"
-              frontColor="#FFFFFF"
-              bottomColor="#FC8EF1"
-              fontClassName="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
-            />
-            <span className="text-white text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold" style={{ letterSpacing: '0.03em' }}>
+            <span className="flex items-center" style={{ lineHeight: '13px' }}>
+              <CubeFlipText
+                text="Close"
+                frontColor="#FFFFFF"
+                bottomColor="#FC8EF1"
+                fontClassName="text-[12px] leading-[13px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+                triggered={closeFlipped}
+              />
+            </span>
+            <span
+              className="text-white text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
+              style={{ letterSpacing: '0.03em', lineHeight: '13px' }}
+            >
               ]
             </span>
           </button>
