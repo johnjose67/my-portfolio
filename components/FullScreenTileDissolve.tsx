@@ -11,8 +11,8 @@ export type FullScreenTileDissolveHandle = {
   dissolve: (color: string) => Promise<void>;
 };
 
-const COLS = 10;
-const ROWS = 18;
+const COLS = 20;
+const ROWS = 28;
 const TOTAL_TILES = COLS * ROWS;
 const TILE_ANIM_DURATION = 250; // ms — matches BadgeDissolve's per-tile duration
 const TILE_DURATION = 900; // ms — total time for all tiles to finish
