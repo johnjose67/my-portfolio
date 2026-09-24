@@ -237,11 +237,11 @@ export default function Home() {
           lineColor={mobileTab ? '#FFFFFF' : '#000000'}
           lineOpacity={10}
           speed={28}
-          characterVideoUrl="/videos/johnsitting.webm"
+          characterVideoUrl={mobileTab ? undefined : '/videos/johnsitting.webm'}
           characterChromaKey={false}
           characterWidth={0.4}
           characterOffsetX={0.65}
-          characterVideoUrl2="/videos/johnstanding.webm"
+          characterVideoUrl2={mobileTab ? undefined : '/videos/johnstanding.webm'}
           characterChromaKey2={false}
           characterWidth2={0.55}
           characterOffsetX2={-0.65}
@@ -399,15 +399,17 @@ export default function Home() {
            either tab is active; Close is the only way back. */
         <div className="relative z-10 w-full h-[100dvh] px-8 pt-6 pb-10 flex flex-col items-center">
           <div className="flex-1 flex flex-col items-center justify-center text-center">
+            {mobileTab === 'about' && (
+              <p
+                className="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold mb-4"
+                style={{ color: '#55D657', lineHeight: '13px', letterSpacing: '0.03em' }}
+              >
+                Hi, I am John.
+              </p>
+            )}
             <p
-              className="text-[16px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold mb-6"
-              style={{ color: '#55D657', lineHeight: '17px', letterSpacing: '0.03em' }}
-            >
-              Hi, I am John.
-            </p>
-            <p
-              className="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
-              style={{ color: '#55D657', lineHeight: '13px', letterSpacing: '0.03em' }}
+              className="text-[12px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold no-underline"
+              style={{ color: '#55D657', lineHeight: '13px', letterSpacing: '0.03em', textDecoration: 'none' }}
             >
               {mobileTab === 'about' ? (
                 "An interaction designer with 3 years of experience turning ideas into intuitive, thoughtful digital experiences. When I'm not deep in a design file, you'll find me behind a camera chasing good light, or being a very devoted cat person. I care about designing things that feel as good as they work."
