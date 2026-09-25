@@ -281,7 +281,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
           not move with it). */}
       <div
         className="relative w-full flex items-center justify-center shrink-0"
-        style={{ height: '30vw', marginTop: `calc(90px + ${CARD_WIDTH_VW / CARD_ASPECT}vw + 4px)` }}
+        style={{ height: '10vw', marginTop: `calc(90px + ${CARD_WIDTH_VW / CARD_ASPECT}vw + 4px)` }}
       >
         {PROJECTS.map((p, i) => (
           <div
@@ -294,10 +294,10 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
         ))}
       </div>
 
-      {/* Gap from title to body text = 2% of the remaining space down
-          to the footer (updated from 5% per your latest request). */}
-      <div style={{ flexGrow: 2 }} />
-      <div className="relative w-full px-8 text-center">
+      {/* Gap from title to body text — switched from a flex-grow ratio
+          (which depended unpredictably on how much space was left
+          after everything else) to a simple fixed margin instead. */}
+      <div className="relative w-full px-8 text-center" style={{ marginTop: '12px' }}>
         {PROJECTS.map((p, i) => (
           <div key={i} className="absolute inset-0 px-8" style={{ pointerEvents: showFlags[i] ? 'auto' : 'none' }}>
             <MorphBlurText
@@ -308,7 +308,6 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
           </div>
         ))}
       </div>
-      <div style={{ flexGrow: 98 }} />
     </>
   );
 });
