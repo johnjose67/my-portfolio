@@ -76,10 +76,10 @@ const BEEBOM_TEXT =
   'Beebom is a leading tech platform that delivers the latest news, in-depth reviews, and quality videos to help consumers navigate technology.';
 
 const PROJECTS = [
-  { title: WRITEWAY_TITLE, text: WRITEWAY_TEXT },
-  { title: HAMAD_TITLE, text: HAMAD_TEXT },
-  { title: TRAX_TITLE, text: TRAX_TEXT },
-  { title: BEEBOM_TITLE, text: BEEBOM_TEXT },
+  { title: WRITEWAY_TITLE, text: WRITEWAY_TEXT, titleWidth: 220 },
+  { title: HAMAD_TITLE, text: HAMAD_TEXT, titleWidth: 166 }, // recalculated for the updated hiatextmobile.png (1176×298px, ratio 3.946) — 166px width gives it the same ~42px rendered height as the other three titles at width 220
+  { title: TRAX_TITLE, text: TRAX_TEXT, titleWidth: 220 },
+  { title: BEEBOM_TITLE, text: BEEBOM_TEXT, titleWidth: 220 },
 ];
 
 const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function MobileProjectCardStack(_, ref) {
@@ -289,7 +289,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
             style={{ pointerEvents: showFlags[i] ? 'auto' : 'none' }}
           >
-            <ImageRevealUp src={p.title} alt="" triggered={showFlags[i]} width={220} />
+            <ImageRevealUp src={p.title} alt="" triggered={showFlags[i]} width={p.titleWidth} />
           </div>
         ))}
       </div>
