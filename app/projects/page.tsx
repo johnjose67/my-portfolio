@@ -192,6 +192,7 @@ export default function Projects() {
           lineColor={mobileTab ? '#FFFFFF' : '#000000'}
           lineOpacity={10}
           speed={28}
+          tiltStrength={0}
           characterVideoUrl={mobileTab ? undefined : '/videos/johnsitting.webm'}
           characterChromaKey={false}
           characterWidth={0.4}
