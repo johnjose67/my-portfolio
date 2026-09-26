@@ -80,7 +80,7 @@ const BEEBOM_TEXT =
 // works correctly for all of them, same as before this needed a
 // per-title workaround.
 const TITLE_WIDTH = 220;
-const TITLE_ASPECT = 4; // all four title images now share this exact ratio
+const TITLE_ASPECT = 3.9463; // all four title images now share this exact ratio
 const TITLE_HEIGHT = TITLE_WIDTH / TITLE_ASPECT; // ≈55.75px — the container below uses this directly, so it reserves exactly enough space (no more, no less) for elements after it, since its children are position:absolute and wouldn't otherwise contribute any height on their own
 
 const PROJECTS = [
@@ -289,7 +289,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
           not move with it). */}
       <div
         className="relative w-full flex items-center justify-center shrink-0"
-        style={{ height: `${TITLE_HEIGHT}px`, marginTop: `calc(90px + ${CARD_WIDTH_VW / CARD_ASPECT}vw)` }}
+        style={{ height: `${TITLE_HEIGHT}px`, marginTop: `calc(90px + ${CARD_WIDTH_VW / CARD_ASPECT}vw - 30px)` }}
       >
         {PROJECTS.map((p, i) => (
           <div
