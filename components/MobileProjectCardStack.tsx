@@ -75,11 +75,19 @@ const BEEBOM_TITLE = '/images/beebomtextmobile.png';
 const BEEBOM_TEXT =
   'Beebom is a leading tech platform that delivers the latest news, in-depth reviews, and quality videos to help consumers navigate technology.';
 
+// All four title graphics now share identical dimensions (1176×298px,
+// ratio 3.946) — re-exported consistently, so a single shared width
+// works correctly for all of them, same as before this needed a
+// per-title workaround.
+const TITLE_WIDTH = 220;
+const TITLE_ASPECT = 4; // all four title images now share this exact ratio
+const TITLE_HEIGHT = TITLE_WIDTH / TITLE_ASPECT; // ≈55.75px — the container below uses this directly, so it reserves exactly enough space (no more, no less) for elements after it, since its children are position:absolute and wouldn't otherwise contribute any height on their own
+
 const PROJECTS = [
-  { title: WRITEWAY_TITLE, text: WRITEWAY_TEXT, titleWidth: 220 },
-  { title: HAMAD_TITLE, text: HAMAD_TEXT, titleWidth: 166 }, // recalculated for the updated hiatextmobile.png (1176×298px, ratio 3.946) — 166px width gives it the same ~42px rendered height as the other three titles at width 220
-  { title: TRAX_TITLE, text: TRAX_TEXT, titleWidth: 220 },
-  { title: BEEBOM_TITLE, text: BEEBOM_TEXT, titleWidth: 220 },
+  { title: WRITEWAY_TITLE, text: WRITEWAY_TEXT },
+  { title: HAMAD_TITLE, text: HAMAD_TEXT },
+  { title: TRAX_TITLE, text: TRAX_TEXT },
+  { title: BEEBOM_TITLE, text: BEEBOM_TEXT },
 ];
 
 const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function MobileProjectCardStack(_, ref) {
@@ -281,7 +289,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
           not move with it). */}
       <div
         className="relative w-full flex items-center justify-center shrink-0"
-        style={{ height: '10vw', marginTop: `calc(90px + ${CARD_WIDTH_VW / CARD_ASPECT}vw + 4px)` }}
+        style={{ height: `${TITLE_HEIGHT}px`, marginTop: `calc(90px + ${CARD_WIDTH_VW / CARD_ASPECT}vw)` }}
       >
         {PROJECTS.map((p, i) => (
           <div
@@ -289,7 +297,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
             style={{ pointerEvents: showFlags[i] ? 'auto' : 'none' }}
           >
-            <ImageRevealUp src={p.title} alt="" triggered={showFlags[i]} width={p.titleWidth} />
+            <ImageRevealUp src={p.title} alt="" triggered={showFlags[i]} width={TITLE_WIDTH} />
           </div>
         ))}
       </div>
@@ -297,7 +305,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
       {/* Gap from title to body text — switched from a flex-grow ratio
           (which depended unpredictably on how much space was left
           after everything else) to a simple fixed margin instead. */}
-      <div className="relative w-full px-8 text-center" style={{ marginTop: '12px' }}>
+      <div className="relative w-full px-8 text-center" style={{ marginTop: '4px' }}>
         {PROJECTS.map((p, i) => (
           <div key={i} className="absolute inset-0 px-8" style={{ pointerEvents: showFlags[i] ? 'auto' : 'none' }}>
             <MorphBlurText
