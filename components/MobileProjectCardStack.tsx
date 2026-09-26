@@ -312,6 +312,8 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
               text={p.text}
               triggered={showFlags[i]}
               className="text-black text-[12px] leading-[13px] tracking-[0.03em] uppercase text-center font-[family-name:var(--font-thermochrome)] font-semibold"
+              entranceDuration={0.35}
+              exitDuration={0.3}
             />
           </div>
         ))}

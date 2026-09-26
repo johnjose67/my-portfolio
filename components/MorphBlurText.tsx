@@ -7,9 +7,17 @@ type MorphBlurTextProps = {
   text: string;
   triggered: boolean;
   className?: string;
+  entranceDuration?: number; // seconds — defaults to the original hardcoded 0.9
+  exitDuration?: number; // seconds — defaults to the original hardcoded 0.7
 };
 
-export default function MorphBlurText({ text, triggered, className = '' }: MorphBlurTextProps) {
+export default function MorphBlurText({
+  text,
+  triggered,
+  className = '',
+  entranceDuration = 0.9,
+  exitDuration = 0.7,
+}: MorphBlurTextProps) {
   const uid = useId().replace(/:/g, '');
   const filterId = `morph-goo-${uid}`;
   const innerRef = useRef<HTMLDivElement>(null);
@@ -23,7 +31,7 @@ export default function MorphBlurText({ text, triggered, className = '' }: Morph
       // Entrance: blurred + scaled down → sharp + full size, matching the
       // reference's 0% → 15% keyframe stretch
       animate(0, 1, {
-        duration: 0.9,
+        duration: entranceDuration,
         ease: [0.22, 1, 0.36, 1],
         onUpdate: (t) => {
           el.style.opacity = String(t);
@@ -37,7 +45,7 @@ export default function MorphBlurText({ text, triggered, className = '' }: Morph
       // the exit read as "dissolving forward" rather than just reversing
       // the entrance
       animate(0, 1, {
-        duration: 0.7,
+        duration: exitDuration,
         ease: 'easeIn',
         onUpdate: (t) => {
           el.style.opacity = String(1 - t);
@@ -48,7 +56,7 @@ export default function MorphBlurText({ text, triggered, className = '' }: Morph
     }
 
     prevTriggered.current = triggered;
-  }, [triggered]);
+  }, [triggered, entranceDuration, exitDuration]);
 
   return (
     <>
