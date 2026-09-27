@@ -23,8 +23,11 @@ const CARDS: CardData[] = [
 const CARD_WIDTH_VW = 80; // 100vw - 5% - 5% margin each side
 const CARD_ASPECT = 0.857;
 const TILT_DEG = 26;
-const SWIPE_SENSITIVITY = 0.006;
-const EASE_RATE = 9;
+const SWIPE_THRESHOLD = 15; // px — "slightest swipe" trigger distance; once a swipe crosses this, it commits to advancing one full card (not proportional to how far you swipe)
+// EASE_RATE removed — replaced by CARD_TRANSITION_DURATION (a fixed
+// per-swipe duration) below, since the old continuous-rate approach
+// could finish faster or slower depending on how much distance
+// remained from an interrupted previous animation.
 
 // Identical tier table to desktop. Percentages here are relative to the
 // CARD's own height, not the container — so as long as the card layer
@@ -95,9 +98,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
   const currentRef = useRef(-1);
   const targetRef = useRef(-1);
   const introDone = useRef(false);
-  // Drives the persistent Projects.png — visible until the first card's
-  // intro rise finishes, then hidden for good (fix #1).
-  const [showProjectsBadge, setShowProjectsBadge] = useState(true);
+  const cardAnimRef = useRef<ReturnType<typeof animate> | null>(null); // tracks the in-flight swipe transition, so a new swipe can cleanly stop the previous one rather than the two fighting over currentRef.current
 
   const [exiting, setExiting] = useState(false);
   const [exitT, setExitT] = useState(0);
@@ -114,52 +115,66 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
       },
       onComplete: () => {
         introDone.current = true;
-        setShowProjectsBadge(false); // card 1 has now fully arrived — badge's job is done
       },
     });
 
-    let raf = 0;
-    let lastTime = performance.now();
-    const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
-      const dt = Math.min((now - lastTime) / 1000, 1 / 30);
-      lastTime = now;
-      if (!introDone.current || exiting) return;
-      const diff = targetRef.current - currentRef.current;
-      const factor = 1 - Math.exp(-EASE_RATE * dt);
-      currentRef.current += diff * factor;
-      if (Math.abs(diff) < 0.0008) currentRef.current = targetRef.current;
-      setProgress(currentRef.current);
-    };
-    raf = requestAnimationFrame(tick);
-
     return () => {
       controls.stop();
-      cancelAnimationFrame(raf);
+      cardAnimRef.current?.stop();
     };
   }, [exiting]);
 
+  // Runs a single card-to-card transition over a FIXED duration,
+  // regardless of the starting position — this is what makes every
+  // swipe take the same amount of time, even if it interrupts a still-
+  // settling previous swipe (which is what previously made swipe-down
+  // look faster: less remaining distance at the same easing RATE meant
+  // less absolute time to finish, even though the curve itself was
+  // identical).
+  const CARD_TRANSITION_DURATION = 0.5; // seconds — same for every swipe, either direction
+  const goToCard = (target: number) => {
+    cardAnimRef.current?.stop();
+    targetRef.current = target;
+    cardAnimRef.current = animate(currentRef.current, target, {
+      duration: CARD_TRANSITION_DURATION,
+      ease: [0.16, 0.46, 0.45, 0.94],
+      onUpdate: (v) => {
+        currentRef.current = v;
+        setProgress(v);
+      },
+    });
+  };
+
   useEffect(() => {
     let touchStartY = 0;
-    let dragging = false;
+    let hasTriggered = false; // ensures ONE continuous finger-drag only advances a single card, even though touchmove fires many times past the threshold
 
     const onTouchStart = (e: TouchEvent) => {
       if (!introDone.current || exiting) return;
       touchStartY = e.touches[0].clientY;
-      dragging = true;
+      hasTriggered = false;
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (!dragging || !introDone.current || exiting) return;
+      if (!introDone.current || exiting || hasTriggered) return;
       const currentY = e.touches[0].clientY;
-      const deltaY = touchStartY - currentY;
-      touchStartY = currentY;
-      const next = Math.min(CARDS.length - 1, Math.max(0, targetRef.current + deltaY * SWIPE_SENSITIVITY));
-      targetRef.current = next;
+      const deltaY = touchStartY - currentY; // positive = swiping up
+
+      if (Math.abs(deltaY) >= SWIPE_THRESHOLD) {
+        hasTriggered = true;
+        // Rounds to the card currently nearest rest, then steps exactly
+        // one card in the swiped direction.
+        const nearestCard = Math.round(currentRef.current);
+        const nextCard =
+          deltaY > 0
+            ? Math.min(CARDS.length - 1, nearestCard + 1) // swipe up → next card
+            : Math.max(0, nearestCard - 1); // swipe down → previous card
+        goToCard(nextCard);
+      }
     };
 
     const onTouchEnd = () => {
-      dragging = false;
+      // Nothing to do here — hasTriggered resets on the next touchstart.
     };
 
     window.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -202,22 +217,23 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
 
   return (
     <>
-      {/* Persistent Projects.png — visible from page load until the
-          first card finishes rising into place, so there's no gap
-          where nothing is on screen. Sits centered, roughly matching
-          the card stack's own footprint. z-20: above the tunnel (z-0),
-          below the full-screen card layer (z-30) and nav/footer (z-50). */}
-      {showProjectsBadge && (
-        <div className="fixed inset-0 z-20 flex items-center justify-center pointer-events-none">
-          <img
-            src="/images/Projects.png"
-            alt="Projects"
-            draggable={false}
-            className="select-none"
-            style={{ width: `${CARD_WIDTH_VW}vw`, height: 'auto' }}
-          />
-        </div>
-      )}
+      {/* Persistent Projects.png — stays mounted permanently, no
+          explicit "hide now" trigger at all. Sits at z-20, BELOW the
+          card layer's z-30, so once the first card arrives it's simply
+          covered naturally by whatever's rendering on top of it — there's
+          no discrete state-toggle moment that could mistime relative to
+          the card's actual visual coverage, which is what caused the
+          "hidden before the card gets there" issue with the previous
+          version. */}
+      <div className="fixed inset-0 z-20 flex items-center justify-center pointer-events-none">
+        <img
+          src="/images/Projects.png"
+          alt="Projects"
+          draggable={false}
+          className="select-none"
+          style={{ width: `${CARD_WIDTH_VW}vw`, height: 'auto' }}
+        />
+      </div>
 
       {/* Full-screen card layer — NOT clipped to a small box, so the
           tier system's percentage-based translateY (relative to the
