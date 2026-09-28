@@ -211,6 +211,12 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
     },
   }));
 
+  // Badge fades out gradually as the first card rises over it. progress runs
+  // -1 -> 0 during the intro; the fade spans the last BADGE_FADE_RANGE of that.
+  // Full opacity again once the exit starts (cards slide down and uncover it).
+  const BADGE_FADE_RANGE = 0.6; // larger = fade starts earlier / lasts longer
+  const badgeOpacity = exiting ? 1 : Math.max(0, Math.min(1, -progress / BADGE_FADE_RANGE));
+
   const card0Rel = progress - 0;
   const card1Rel = progress - 1;
   const card2Rel = progress - 2;
@@ -232,16 +238,25 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
           the card's actual visual coverage, which is what caused the
           "hidden before the card gets there" issue with the previous
           version. */}
-      <div className="fixed inset-0 z-20 flex items-center justify-center pointer-events-none">
-        <BadgeDissolve
-          ref={badgeRef}
-          frontSrc="/images/Projects.png"
-          frontAlt="Projects"
-          backSrc="/images/Home-Name-Tag.png"
-          backAlt="John Jose"
-          width={320}
-          height={156}
-        />
+      <div
+        className="absolute inset-0 z-20 flex flex-col items-center min-h-0 pointer-events-none"
+        style={{ opacity: badgeOpacity }}
+      >
+        <div style={{ flexGrow: 1 }} />
+        <div className="w-full max-w-[320px] aspect-[672/430]">
+          <BadgeDissolve
+            ref={badgeRef}
+            frontSrc="/images/Projects.png"
+            frontAlt="Projects"
+            backSrc="/images/Home-Name-Tag.png"
+            backAlt="John Jose"
+            width={340}
+            height={218}
+          />
+        </div>
+        <div style={{ flexGrow: 0.1 }} />
+        <div style={{ height: 40 }} />
+        <div style={{ flexGrow: 0.9 }} />
       </div>
 
       {/* Full-screen card layer — NOT clipped to a small box, so the

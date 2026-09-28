@@ -259,7 +259,7 @@ export default function Projects() {
             title/text content that DOES flow normally. flex-col (not
             centered) lets the component's internal flex-grow spacers
             (title, 2%-gap, text, remaining-gap) actually work. */}
-        <div className="flex-1 flex flex-col">
+        <div className="relative flex-1 flex flex-col min-h-0">
           {showMobileCards && <MobileProjectCardStack ref={mobileCardStackRef} />}
         </div>
 
