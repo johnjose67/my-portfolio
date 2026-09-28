@@ -25,7 +25,7 @@ export default function Projects() {
 
   // --- Mobile-only state/handlers ---
   const mobileCardStackRef = useRef<MobileProjectCardStackHandle>(null);
-  const [showMobileCards, setShowMobileCards] = useState(true);
+  const [showMobileCards] = useState(true);
   const crtRef = useRef<CRTPowerOnHandle>(null);
   const [mobileTab, setMobileTab] = useState<'about' | 'contact' | null>(null);
   const FLIP_DURATION = 450;
@@ -46,7 +46,9 @@ export default function Projects() {
     // the whole card stack (badge included) — after that, the ref is null.
     await mobileCardStackRef.current?.exitDown();
     await mobileCardStackRef.current?.dissolveBadge();
-    setShowMobileCards(false);
+    // No setShowMobileCards(false) here: the badge lives inside the card
+    // stack, so unmounting it before navigating left the screen empty for
+    // a split second. Navigating away unmounts everything on its own.
     setHomeFlipped(false);
     router.push('/');
   };
