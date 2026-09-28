@@ -54,15 +54,6 @@ type GalleryTunnelProps = {
     characterOffsetX2?: number;
     characterDelaySeconds2?: number; // how many seconds behind the first character it trails
     characterTrimSeconds2?: number; // loop only the first N seconds of this video
-    characterVideoUrl3?: string; // third character (e.g. the cat), looping video
-    characterChromaKey3?: boolean;
-    characterChromaKeyColor3?: string;
-    characterChromaKeyThreshold3?: number;
-    characterChromaKeySmoothing3?: number;
-    characterWidth3?: number;
-    characterOffsetX3?: number; // 0 = center of the floor
-    characterDelaySeconds3?: number; // seconds AFTER character 2 arrives
-    characterTrimSeconds3?: number;
     characterRepeat?: number; // how many evenly-spaced copies of EACH character to spawn — 1 (default) is the original single-copy behavior; higher values close the gap between reappearances
     style?: CSSProperties;
 };
@@ -95,15 +86,6 @@ export default function GalleryTunnel(props: GalleryTunnelProps) {
         characterOffsetX2 = -0.65,
         characterDelaySeconds2 = 2,
         characterTrimSeconds2,
-        characterVideoUrl3,
-        characterChromaKey3 = false,
-        characterChromaKeyColor3 = "#000000",
-        characterChromaKeyThreshold3 = 0.25,
-        characterChromaKeySmoothing3 = 0.1,
-        characterWidth3 = 0.4,
-        characterOffsetX3 = 0,
-        characterDelaySeconds3 = 3,
-        characterTrimSeconds3,
         characterRepeat = 1,
         style,
     } = props;
@@ -529,31 +511,6 @@ export default function GalleryTunnel(props: GalleryTunnelProps) {
             }
         }
 
-        // Slot 3 — arrives characterDelaySeconds3 after slot 2 (or after
-        // slot 1 if slot 2 isn't used). Same recycling and repeat rules.
-        if (characterVideoUrl3) {
-            const slot2StartZ =
-                characterVideoUrl2 || characterImageUrl2
-                    ? -SEGMENT_DEPTH * 4 - approxUnitsPerSecond * characterDelaySeconds2
-                    : -SEGMENT_DEPTH * 4;
-            const startZ3 = slot2StartZ - approxUnitsPerSecond * characterDelaySeconds3;
-            for (let r = 0; r < repeatCount; r++) {
-                characters.push(
-                    createVideoCharacter(
-                        characterVideoUrl3,
-                        characterOffsetX3,
-                        characterWidth3,
-                        startZ3 - r * repeatSpacing,
-                        characterChromaKey3,
-                        characterChromaKeyColor3,
-                        characterChromaKeyThreshold3,
-                        characterChromaKeySmoothing3,
-                        characterTrimSeconds3
-                    )
-                );
-            }
-        }
-
         const resize = () => {
             // frame.clientWidth/clientHeight measure the PRE-scale layout
             // size (149.25vw/vh from the page's scale-to-fit wrapper),
@@ -685,15 +642,6 @@ export default function GalleryTunnel(props: GalleryTunnelProps) {
         characterOffsetX2,
         characterDelaySeconds2,
         characterTrimSeconds2,
-        characterVideoUrl3,
-        characterChromaKey3,
-        characterChromaKeyColor3,
-        characterChromaKeyThreshold3,
-        characterChromaKeySmoothing3,
-        characterWidth3,
-        characterOffsetX3,
-        characterDelaySeconds3,
-        characterTrimSeconds3,
         characterRepeat,
     ]);
 

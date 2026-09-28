@@ -150,12 +150,6 @@ export default function Home() {
           characterOffsetX2={-0.65}
           characterDelaySeconds2={10}
           characterTrimSeconds2={8}
-          characterVideoUrl3="/videos/catalone.webm"
-          characterChromaKey3={true}
-          characterChromaKeyColor3="#00b140"
-          characterWidth3={0.4}
-          characterOffsetX3={0}
-          characterDelaySeconds3={3}
         />
       </div>
 
@@ -319,12 +313,6 @@ export default function Home() {
           characterOffsetX2={-0.65}
           characterDelaySeconds2={10}
           characterTrimSeconds2={8}
-          characterVideoUrl3={mobileTab ? undefined : '/videos/catalone.webm'}
-          characterChromaKey3={true}
-          characterChromaKeyColor3="#00b140"
-          characterWidth3={0.4}
-          characterOffsetX3={0}
-          characterDelaySeconds3={3}
         />
       </div>
 
