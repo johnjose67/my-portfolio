@@ -41,8 +41,11 @@ export default function Projects() {
     setHomeFlipped(true);
     await new Promise((r) => setTimeout(r, FLIP_DURATION));
     // Same exitDown-then-dissolve-then-navigate sequence as desktop,
-    // just triggered from the mobile Home button instead.
+    // just triggered from the mobile Home button instead. dissolveBadge
+    // must run BEFORE setShowMobileCards(false), since that unmounts
+    // the whole card stack (badge included) — after that, the ref is null.
     await mobileCardStackRef.current?.exitDown();
+    await mobileCardStackRef.current?.dissolveBadge();
     setShowMobileCards(false);
     setHomeFlipped(false);
     router.push('/');

@@ -4,11 +4,9 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { animate } from 'framer-motion';
 import MorphBlurText from './MorphBlurText';
 import ImageRevealUp from './ImageRevealUp';
-import BadgeDissolve, { type BadgeDissolveHandle } from './BadgeDissolve';
 
 export type MobileProjectCardStackHandle = {
   exitDown: () => Promise<void>;
-  dissolveBadge: () => Promise<void>;
 };
 
 type CardData = { src: string; alt: string; href: string };
@@ -101,8 +99,6 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
   const targetRef = useRef(-1);
   const introDone = useRef(false);
   const cardAnimRef = useRef<ReturnType<typeof animate> | null>(null); // tracks the in-flight swipe transition, so a new swipe can cleanly stop the previous one rather than the two fighting over currentRef.current
-
-  const badgeRef = useRef<BadgeDissolveHandle>(null);
 
   const [exiting, setExiting] = useState(false);
   const [exitT, setExitT] = useState(0);
@@ -206,9 +202,6 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
         });
       });
     },
-    dissolveBadge: () => {
-      return badgeRef.current?.dissolve() ?? Promise.resolve();
-    },
   }));
 
   const card0Rel = progress - 0;
@@ -233,14 +226,12 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
           "hidden before the card gets there" issue with the previous
           version. */}
       <div className="fixed inset-0 z-20 flex items-center justify-center pointer-events-none">
-        <BadgeDissolve
-          ref={badgeRef}
-          frontSrc="/images/Projects.png"
-          frontAlt="Projects"
-          backSrc="/images/Home-Name-Tag.png"
-          backAlt="John Jose"
-          width={320}
-          height={156}
+        <img
+          src="/images/Projects.png"
+          alt="Projects"
+          draggable={false}
+          className="select-none"
+          style={{ width: `${CARD_WIDTH_VW}vw`, height: 'auto' }}
         />
       </div>
 
