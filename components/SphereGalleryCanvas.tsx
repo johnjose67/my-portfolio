@@ -379,10 +379,17 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle, SphereGalleryC
       lastPointer = { x: e.clientX, y: e.clientY };
       velocity = { x: 0, y: 0 };
 
-      if (holdTimer) clearTimeout(holdTimer);
-      holdTimer = setTimeout(() => {
+      if (mobile) {
+        // On mobile, a swipe alone should trigger the bulge — no
+        // hold-and-then-drag requirement like desktop has. Skipping the
+        // HOLD_THRESHOLD_MS delay entirely and activating immediately.
         holding = true;
-      }, HOLD_THRESHOLD_MS);
+      } else {
+        if (holdTimer) clearTimeout(holdTimer);
+        holdTimer = setTimeout(() => {
+          holding = true;
+        }, HOLD_THRESHOLD_MS);
+      }
     };
 
     const onPointerMove = (e: PointerEvent) => {
