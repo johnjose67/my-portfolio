@@ -8,6 +8,14 @@ export type SphereGalleryCanvasHandle = {
   exitAnimation: () => Promise<void>;
 };
 
+type SphereGalleryCanvasProps = {
+  // When true: sizes the frame to 100vw/100vh instead of 149.25vw/vh,
+  // and skips the *0.67 correction in resize() — both of those exist
+  // only to compensate for desktop's scale(0.67) wrapper, which mobile
+  // doesn't use at all (mobile is natively responsive).
+  mobile?: boolean;
+};
+
 type PhotoCard = {
   x: number;
   y: number;
@@ -184,7 +192,10 @@ const FRAGMENT_SHADER = `
   }
 `;
 
-const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function SphereGalleryCanvas(_, ref) {
+const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle, SphereGalleryCanvasProps>(function SphereGalleryCanvas(
+  { mobile = false },
+  ref
+) {
   const frameRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // Holds references to the live plane/uniforms/state so the imperative
@@ -246,8 +257,24 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function Spher
     // this canvas (e.g. GalleryTunnel) shows through.
 
     const camera = new THREE.PerspectiveCamera(FOV, 1, 1, 20000);
-    camera.position.set(0, 0, CAMERA_DISTANCE);
+    // Mobile's viewport aspect ratio differs a lot from desktop's wide
+    // layout, which made the same camera distance show content ~30%
+    // too large on phones. Moving the camera back (perspective scales
+    // roughly inversely with distance) shrinks everything without
+    // needing to retune REPEAT_X/Y or the plane itself.
+    const effectiveCameraDistance = mobile ? CAMERA_DISTANCE * 1.43 : CAMERA_DISTANCE;
+    camera.position.set(0, 0, effectiveCameraDistance);
     camera.lookAt(0, 0, 0);
+
+    // Drag sensitivity must scale with camera distance too — PAN_SENSITIVITY
+    // converts raw screen pixels into a texture UV offset, independent of
+    // zoom. With the camera moved back (mobile), more of the texture is
+    // visible on screen at once, so the same UV offset now covers a
+    // SMALLER fraction of what's visible — the same raw sensitivity value
+    // produces a proportionally smaller visual movement. Deriving this
+    // from effectiveCameraDistance (rather than hardcoding another mobile
+    // constant) keeps the two automatically in sync if either changes later.
+    const effectivePanSensitivity = PAN_SENSITIVITY * (effectiveCameraDistance / CAMERA_DISTANCE);
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -364,8 +391,8 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function Spher
       const dy = e.clientY - lastPointer.y;
       lastPointer = { x: e.clientX, y: e.clientY };
 
-      const dOffsetX = dx * PAN_SENSITIVITY;
-      const dOffsetY = -dy * PAN_SENSITIVITY;
+      const dOffsetX = dx * effectivePanSensitivity;
+      const dOffsetY = -dy * effectivePanSensitivity;
       offsetX += dOffsetX;
       offsetY += dOffsetY;
 
@@ -392,8 +419,12 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function Spher
       // actually visible. Without correcting for the known 0.67 scale
       // factor, the drawing buffer ends up ~1.5x oversized, which was
       // enough to break rendering entirely on this more complex scene.
-      const w = Math.max(1, frame.clientWidth * 0.67);
-      const h = Math.max(1, frame.clientHeight * 0.67);
+      // On mobile there IS no scale wrapper at all, so clientWidth/Height
+      // already ARE the true visible size — the correction factor is 1
+      // (i.e. skipped) in that case, not 0.67.
+      const correction = mobile ? 1 : 0.67;
+      const w = Math.max(1, frame.clientWidth * correction);
+      const h = Math.max(1, frame.clientHeight * correction);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
@@ -458,13 +489,18 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle>(function Spher
       loadedTexture?.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [mobile]);
 
   return (
     <div
       ref={frameRef}
       className="fixed inset-0"
-      style={{ cursor: 'grab', touchAction: 'none', width: '149.25vw', height: '149.25vh' }}
+      style={{
+        cursor: 'grab',
+        touchAction: 'none',
+        width: mobile ? '100vw' : '149.25vw',
+        height: mobile ? '100vh' : '149.25vh',
+      }}
     >
       <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
     </div>
