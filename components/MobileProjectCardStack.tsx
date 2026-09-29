@@ -207,6 +207,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
           Math.max(TIERS[0].rel, Math.min(TIERS[TIERS.length - 1].rel, currentRef.current - i))
         );
         setExiting(true);
+        setScrollHintDismissed(true); // card is about to pass over/down through it — dismiss now, same as a swipe does
         animate(0, 1, {
           duration: 0.7,
           ease: 'easeIn',
