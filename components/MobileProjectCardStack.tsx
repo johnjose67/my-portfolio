@@ -5,6 +5,7 @@ import { animate } from 'framer-motion';
 import MorphBlurText from './MorphBlurText';
 import ImageRevealUp from './ImageRevealUp';
 import BadgeDissolve, { type BadgeDissolveHandle } from './BadgeDissolve';
+import LoopingFlipImage from './LoopingFlipImage';
 
 export type MobileProjectCardStackHandle = {
   exitDown: () => Promise<void>;
@@ -104,6 +105,12 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
 
   const badgeRef = useRef<BadgeDissolveHandle>(null);
 
+  // Scroll hint (scroll.png): appears once card 1 has arrived, then is
+  // PERMANENTLY dismissed the first time the user swipes — never comes
+  // back, even if they swipe back down to card 0 later.
+  const [showScrollHint, setShowScrollHint] = useState(false);
+  const [scrollHintDismissed, setScrollHintDismissed] = useState(false);
+
   const [exiting, setExiting] = useState(false);
   const [exitT, setExitT] = useState(0);
   const startRelsRef = useRef<number[]>(CARDS.map(() => -1));
@@ -119,6 +126,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
       },
       onComplete: () => {
         introDone.current = true;
+        setShowScrollHint(true);
       },
     });
 
@@ -166,6 +174,7 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
 
       if (Math.abs(deltaY) >= SWIPE_THRESHOLD) {
         hasTriggered = true;
+        setScrollHintDismissed(true); // one-way latch — first swipe, gone for good
         // Rounds to the card currently nearest rest, then steps exactly
         // one card in the swiped direction.
         const nearestCard = Math.round(currentRef.current);
@@ -357,6 +366,15 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
             />
           </div>
         ))}
+      </div>
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex justify-center pointer-events-none">
+        <LoopingFlipImage
+          src="/images/scroll.png"
+          alt="Scroll"
+          visible={showScrollHint && !scrollHintDismissed}
+          width={48}
+          pauseDuration={2000}
+        />
       </div>
     </>
   );
