@@ -124,7 +124,7 @@ export default function Gallery() {
       </p>
       <div className="absolute right-[51px] bottom-[40px] z-50 flex items-center gap-6 text-black text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold">
         <span>[</span>
-        <a href="https://behance.net" target="_blank" rel="noopener noreferrer" className="group">
+        <a href="https://www.behance.net/johnjoro15fed6" target="_blank" rel="noopener noreferrer" className="group">
           <CubeFlipText
             text="Behance"
             frontColor="#000000"
@@ -132,7 +132,7 @@ export default function Gallery() {
             fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
           />
         </a>
-        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="group">
+        <a href="https://www.linkedin.com/in/john-jose-376500141/" target="_blank" rel="noopener noreferrer" className="group">
           <CubeFlipText
             text="Linkedin"
             frontColor="#000000"
@@ -140,7 +140,7 @@ export default function Gallery() {
             fontClassName="text-[20px] tracking-[0.48px] uppercase font-[family-name:var(--font-thermochrome)] font-semibold"
           />
         </a>
-        <a href="https://medium.com" target="_blank" rel="noopener noreferrer" className="group">
+        <a href="https://medium.com/design-bootcamp/ux-audit-done-for-a-ride-hailing-app-5bf335e12376" target="_blank" rel="noopener noreferrer" className="group">
           <CubeFlipText
             text="Medium"
             frontColor="#000000"
@@ -238,7 +238,7 @@ export default function Gallery() {
           >
             <div className="flex items-center gap-1">
               <span>[</span>
-              <a href="https://behance.net" onClick={handleMobileSocialTap('https://behance.net', setBehanceFlipped)} className="group">
+              <a href="https://www.behance.net/johnjoro15fed6" onClick={handleMobileSocialTap('https://www.behance.net/johnjoro15fed6', setBehanceFlipped)} className="group">
                 <CubeFlipText
                   text="Behance"
                   frontColor="#000000"
@@ -248,7 +248,7 @@ export default function Gallery() {
                 />
               </a>
             </div>
-            <a href="https://linkedin.com" onClick={handleMobileSocialTap('https://linkedin.com', setLinkedinFlipped)} className="group">
+            <a href="https://www.linkedin.com/in/john-jose-376500141/" onClick={handleMobileSocialTap('https://www.linkedin.com/in/john-jose-376500141/', setLinkedinFlipped)} className="group">
               <CubeFlipText
                 text="Linkedin"
                 frontColor="#000000"
@@ -258,7 +258,7 @@ export default function Gallery() {
               />
             </a>
             <div className="flex items-center gap-1">
-              <a href="https://medium.com" onClick={handleMobileSocialTap('https://medium.com', setMediumFlipped)} className="group">
+              <a href="https://medium.com/design-bootcamp/ux-audit-done-for-a-ride-hailing-app-5bf335e12376" onClick={handleMobileSocialTap('https://medium.com/design-bootcamp/ux-audit-done-for-a-ride-hailing-app-5bf335e12376', setMediumFlipped)} className="group">
                 <CubeFlipText
                   text="Medium"
                   frontColor="#000000"

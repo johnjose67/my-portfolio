@@ -15,10 +15,10 @@ export type MobileProjectCardStackHandle = {
 type CardData = { src: string; alt: string; href: string };
 
 const CARDS: CardData[] = [
-  { src: '/images/projectmobile-1.png', alt: 'Project 1', href: '#' },
-  { src: '/images/projectmobile-2.png', alt: 'Project 2', href: '#' },
-  { src: '/images/projectmobile-3.png', alt: 'Project 3', href: '#' },
-  { src: '/images/projectmobile-4.png', alt: 'Project 4', href: '#' },
+  { src: '/images/projectmobile-1.png', alt: 'Project 1', href: 'https://pitch.com/public/f8813b6f-5fc7-4b3d-a791-d68b8b5bdda0/d61bc874-b160-4286-a9a1-cbc868078606' },
+  { src: '/images/projectmobile-2.png', alt: 'Project 2', href: 'https://pitch.com/public/e8bc97d2-cf7a-4d5e-af27-20ad1671754f/76c032b6-fc48-4e42-bb2b-0d6be078e997' },
+  { src: '/images/projectmobile-3.png', alt: 'Project 3', href: 'https://www.behance.net/gallery/177080617/Trax-eBike-Ecommerce-App' },
+  { src: '/images/projectmobile-4.png', alt: 'Project 4', href: 'https://www.behance.net/gallery/180135813/UI-Revamp-Tech-Media-Company' },
 ];
 
 // Card sizing — confirmed from the actual projectmobile-1.png file
@@ -295,6 +295,8 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
               <a
                 key={i}
                 href={card.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="absolute cursor-pointer overflow-hidden"
                 style={{
                   width: `${CARD_WIDTH_VW}vw`,
@@ -317,6 +319,8 @@ const MobileProjectCardStack = forwardRef<MobileProjectCardStackHandle>(function
             <a
               key={i}
               href={card.href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="absolute cursor-pointer overflow-hidden"
               style={{
                 width: `${CARD_WIDTH_VW}vw`,
