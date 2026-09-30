@@ -415,10 +415,37 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle, SphereGalleryC
       }
     };
 
+    // Desktop-only: mouse wheel scroll also moves the gallery vertically
+    // (same offsetY drag already uses), with the same bulge effect
+    // active while scrolling. Horizontal stays drag-only, per your
+    // request — e.deltaX is intentionally never read here. Since wheel
+    // events don't have a natural "release" like pointerup does, a
+    // short debounce timer resets `holding` back to false once wheel
+    // events stop arriving for WHEEL_HOLD_RESET_MS.
+    const WHEEL_SENSITIVITY = 0.00005; // deltaY → UV offset; tuned separately from drag's PAN_SENSITIVITY since wheel deltas are a different scale than drag pixels
+    const WHEEL_HOLD_RESET_MS = 150;
+    let wheelHoldTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const onWheel = (e: WheelEvent) => {
+      if (mobile || introActive || exiting) return;
+      e.preventDefault();
+
+      const dOffsetY = -e.deltaY * WHEEL_SENSITIVITY;
+      offsetY += dOffsetY;
+      velocity = { x: velocity.x, y: dOffsetY };
+
+      holding = true;
+      if (wheelHoldTimer) clearTimeout(wheelHoldTimer);
+      wheelHoldTimer = setTimeout(() => {
+        holding = false;
+      }, WHEEL_HOLD_RESET_MS);
+    };
+
     window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
+    frame.addEventListener('wheel', onWheel, { passive: false });
 
     const resize = () => {
       // Same correction as GalleryTunnel — frame.clientWidth/clientHeight
@@ -488,7 +515,9 @@ const SphereGalleryCanvas = forwardRef<SphereGalleryCanvasHandle, SphereGalleryC
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
+      frame.removeEventListener('wheel', onWheel);
       if (holdTimer) clearTimeout(holdTimer);
+      if (wheelHoldTimer) clearTimeout(wheelHoldTimer);
       introControls?.stop();
       revealControls?.stop();
       geometry.dispose();

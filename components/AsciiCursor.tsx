@@ -199,6 +199,23 @@ function __OriginkitBase_AsciiCursor(props: AsciiCursorProps) {
 
         const frame = (now: number) => {
             raf = requestAnimationFrame(frame);
+
+            // While a component elsewhere on the page (e.g. the project
+            // card hover label) wants this cursor hidden, it adds the
+            // 'hide-ascii-cursor' class to document.body. Checked here
+            // rather than via a prop, since this component is a global
+            // singleton (mounted once in layout.tsx) and the components
+            // that need to hide it sit far away in the tree — a CSS class
+            // toggle avoids threading a prop/context through everything
+            // in between. Clears the canvas and restores the native
+            // cursor so the page isn't left with neither cursor visible.
+            if (document.body.classList.contains("hide-ascii-cursor")) {
+                ctx.clearRect(0, 0, w, h);
+                hideNativeCursor(false);
+                last = now;
+                return;
+            }
+
             if (!visible) {
                 last = now;
                 return;

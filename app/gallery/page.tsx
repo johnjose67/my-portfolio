@@ -290,7 +290,7 @@ export default function Gallery() {
               style={{ color: '#55D657', lineHeight: '13px', letterSpacing: '0.03em', textDecoration: 'none' }}
             >
               {mobileTab === 'about' ? (
-                "An interaction designer with 3 years of experience turning ideas into intuitive, thoughtful digital experiences. When I'm not deep in a design file, you'll find me behind a camera chasing good light, or being a very devoted cat person. I care about designing things that feel as good as they work."
+                "An interaction designer with 3 years of experience and a Master's in Interaction Design from the University of Queensland, turning ideas into intuitive, thoughtful digital experiences. When I'm not deep in a design file, you'll find me behind a camera chasing good light, or being a very devoted cat person. I care about designing things that feel as good as they work."
               ) : (
                 <>
                   Brisbane, Australia

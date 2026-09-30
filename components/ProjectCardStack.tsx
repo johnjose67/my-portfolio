@@ -4,6 +4,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 're
 import { animate } from 'framer-motion';
 import MorphBlurText from './MorphBlurText';
 import ImageRevealUp from './ImageRevealUp';
+import ViewProjectLabel from './ViewProjectLabel';
+import LoopingFlipImage from './LoopingFlipImage';
 
 export type ProjectCardStackHandle = {
   exitDown: () => Promise<void>;
@@ -15,10 +17,10 @@ type CardData = { src: string; alt: string; href: string };
 
 // Placeholder hrefs — swap these for real case-study destinations later.
 const CARDS: CardData[] = [
-  { src: '/images/project-1.png', alt: 'Project 1', href: '#' },
-  { src: '/images/project-2.png', alt: 'Project 2', href: '#' },
-  { src: '/images/project-3.png', alt: 'Project 3', href: '#' },
-  { src: '/images/project-4.png', alt: 'Project 4', href: '#' },
+  { src: '/images/project-1.png', alt: 'Project 1', href: 'https://pitch.com/public/f8813b6f-5fc7-4b3d-a791-d68b8b5bdda0/d61bc874-b160-4286-a9a1-cbc868078606' },
+  { src: '/images/project-2.png', alt: 'Project 2', href: 'https://pitch.com/public/e8bc97d2-cf7a-4d5e-af27-20ad1671754f/76c032b6-fc48-4e42-bb2b-0d6be078e997' },
+  { src: '/images/project-3.png', alt: 'Project 3', href: 'https://www.behance.net/gallery/177080617/Trax-eBike-Ecommerce-App' },
+  { src: '/images/project-4.png', alt: 'Project 4', href: 'https://www.behance.net/gallery/180135813/UI-Revamp-Tech-Media-Company' },
 ];
 
 const CARD_WIDTH = 1125;
@@ -29,6 +31,14 @@ const WHEEL_SENSITIVITY = 0.0006; // lower = less sensitive, more scrolling need
 // more cinematic lag. This is now a rate (per second), not a per-frame
 // fraction, so it behaves identically on 60Hz and 120Hz screens alike.
 const EASE_RATE = 9;
+
+// The desktop page wraps everything in transform: scale(0.67) (see
+// app/projects/page.tsx's <main>). Mouse coordinates from getBoundingClientRect()
+// are in real screen pixels (post-scale), but this card's own left/top
+// positioning happens in its unscaled internal space — dividing by this
+// factor converts between the two. See the onMouseMove comment below for
+// the full explanation.
+const DESKTOP_SCALE = 0.67;
 
 // "7% distance from project-1.png" = 7% of the card's own width
 const SIDE_GAP = CARD_WIDTH * 0.07; // 78.75px
@@ -94,6 +104,19 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
   const [exitT, setExitT] = useState(0);
   const startRelsRef = useRef<number[]>(CARDS.map(() => -1));
 
+  // Which card (if any) is currently hovered, and where the cursor is
+  // within it — drives the "[ VIEW PROJECT ]" cursor-following label.
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+
+  // Scroll hint (scroll.png) — same appear/dismiss logic as mobile:
+  // appears once card 1 has fully arrived, then is PERMANENTLY
+  // dismissed the first time the user interacts (here: the first wheel
+  // scroll, or exiting) — never comes back, even scrolling back to
+  // card 0 later.
+  const [showScrollHint, setShowScrollHint] = useState(false);
+  const [scrollHintDismissed, setScrollHintDismissed] = useState(false);
+
   // Intro: rises smoothly and slowly from below, decelerating gently into
   // place — pure ease-out, no overshoot/bounce
   useEffect(() => {
@@ -107,6 +130,7 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
       },
       onComplete: () => {
         introDone.current = true;
+        setShowScrollHint(true);
       },
     });
 
@@ -142,6 +166,7 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (!introDone.current || exiting) return;
+      setScrollHintDismissed(true); // one-way latch — first scroll, gone for good (safe to call every event: setState to the same value is a no-op after the first)
       const next = Math.min(
         CARDS.length - 1,
         Math.max(0, targetRef.current + e.deltaY * WHEEL_SENSITIVITY)
@@ -159,6 +184,7 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
           Math.max(TIERS[0].rel, Math.min(TIERS[TIERS.length - 1].rel, currentRef.current - i))
         );
         setExiting(true);
+        setScrollHintDismissed(true); // card is about to pass over/down through it — dismiss now, same as a scroll does
         animate(0, 1, {
           duration: 0.7,
           ease: 'easeIn',
@@ -172,10 +198,12 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
     // scroll-proportional amount
     nextCard: () => {
       if (!introDone.current || exiting) return;
+      setScrollHintDismissed(true);
       targetRef.current = Math.min(CARDS.length - 1, targetRef.current + 1);
     },
     prevCard: () => {
       if (!introDone.current || exiting) return;
+      setScrollHintDismissed(true);
       targetRef.current = Math.max(0, targetRef.current - 1);
     },
   }));
@@ -319,6 +347,8 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
             <a
               key={i}
               href={card.href}
+              target="_blank"
+              rel="noopener noreferrer"
               className="absolute cursor-pointer overflow-hidden"
               style={{
                 width: CARD_WIDTH,
@@ -346,6 +376,8 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
           <a
             key={i}
             href={card.href}
+            target="_blank"
+            rel="noopener noreferrer"
             className="absolute cursor-pointer overflow-hidden"
             style={{
               width: CARD_WIDTH,
@@ -354,6 +386,40 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
               transform: `translateY(${y}%) scale(${scale}) rotateX(${rotateX}deg)`,
               pointerEvents: 'auto',
             }}
+            onMouseEnter={(e) => {
+              setHoveredCard(i);
+              // Computed here too, not just in onMouseMove below — without
+              // this, the label became visible immediately on enter but
+              // sat at whatever stale position cursorPos last held (from
+              // a previous card, or the initial default), only catching
+              // up to the real cursor once the first onMouseMove fired.
+              // Divided by DESKTOP_SCALE for the reason explained below.
+              const rect = e.currentTarget.getBoundingClientRect();
+              setCursorPos({ x: (e.clientX - rect.left) / DESKTOP_SCALE, y: (e.clientY - rect.top) / DESKTOP_SCALE });
+              // Hides the global pixelated cursor while over a card — it
+              // was making the label feel disconnected/far from the
+              // actual pointer, since there were two competing visual
+              // indicators at once. See AsciiCursor.tsx for the other
+              // side of this (a class-check inside its animation loop).
+              document.body.classList.add('hide-ascii-cursor');
+            }}
+            onMouseLeave={() => {
+              setHoveredCard(null);
+              document.body.classList.remove('hide-ascii-cursor');
+            }}
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              // getBoundingClientRect() measures the card's actual VISUAL
+              // (post scale(0.67)) size in real screen pixels, but the
+              // label's left/top below get interpreted in the card's own
+              // UNSCALED internal coordinate space (1125×730), which then
+              // gets scaled down by 0.67 again on render — double-scaling
+              // the effective position. Dividing by DESKTOP_SCALE here
+              // converts the screen-pixel delta back into that unscaled
+              // space, so the label lands exactly where the cursor
+              // visually is, not proportionally pulled toward the corner.
+              setCursorPos({ x: (e.clientX - rect.left) / DESKTOP_SCALE, y: (e.clientY - rect.top) / DESKTOP_SCALE });
+            }}
           >
             <img
               src={card.src}
@@ -361,9 +427,20 @@ const ProjectCardStack = forwardRef<ProjectCardStackHandle>(function ProjectCard
               draggable={false}
               className="w-full h-full object-cover select-none"
             />
+            <ViewProjectLabel active={hoveredCard === i} x={cursorPos.x} y={cursorPos.y} />
           </a>
         );
       })}
+
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex justify-center pointer-events-none">
+        <LoopingFlipImage
+          src="/images/scroll.png"
+          alt="Scroll"
+          visible={showScrollHint && !scrollHintDismissed}
+          width={80}
+          pauseDuration={2500}
+        />
+      </div>
     </div>
   );
 });
