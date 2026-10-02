@@ -1,13 +1,11 @@
 import { neueBit, condiment, thermochrome } from '@/lib/fonts';
 import AsciiCursor from '@/components/AsciiCursor';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata = {
   title: 'John Jose — Interaction Designer',
   description: 'Portfolio of John Jose, interaction designer based in Brisbane, Australia.',
-  // Stops iOS Safari's automatic email/phone-number detection from
-  // auto-styling plain text as an underlined link — this, not any CSS,
-  // was the actual cause of the underline under the email address.
   other: {
     'format-detection': 'telephone=no, email=no, address=no',
   },
@@ -25,13 +23,10 @@ export default function RootLayout({
     >
       <body className="overflow-hidden">
         {children}
-        {/* Full-screen cursor trail effect — sits above all page content,
-            but pointer-events-none so it never blocks clicks/links underneath.
-            scale-90 below md shrinks it 10% for mobile only; md:scale-100
-            restores full size on desktop, completely unchanged. */}
         <div className="fixed inset-0 pointer-events-none z-[9999] scale-90 md:scale-100">
           <AsciiCursor label={false} />
         </div>
+        <Analytics />
       </body>
     </html>
   );
