@@ -48,7 +48,7 @@ const WRITEWAY_TEXT =
   'Writeway is an online book publishing firm that specializes in making the publishing process easy and efficient for authors.';
 
 const HAMAD_TEXT =
-  'An app designed to enhance both the travel and meet-and-greet experience for airline passengers and their greeters.';
+  'A sports community app that helps adults find people, games and venues nearby, built to include everyone.';
 
 const TRAX_TEXT =
   'TRAX is an e-commerce app that targets e-bike enthusiasts to purchase e-bikes and customize them according to their preferences.';

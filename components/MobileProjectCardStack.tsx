@@ -71,7 +71,7 @@ const WRITEWAY_TEXT =
 
 const HAMAD_TITLE = '/images/hiatextmobile.png';
 const HAMAD_TEXT =
-  'An app designed to enhance both the travel and meet-and-greet experience for airline passengers and their greeters.';
+  'A sports community app that helps adults find people, games and venues nearby, built to include everyone.';
 
 const TRAX_TITLE = '/images/traxtextmobile.png';
 const TRAX_TEXT =
