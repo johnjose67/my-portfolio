@@ -45,7 +45,7 @@ const SIDE_GAP = CARD_WIDTH * 0.07; // 78.75px
 const SIDE_OFFSET = CARD_WIDTH / 2 + SIDE_GAP; // 787.5px from screen center
 
 const WRITEWAY_TEXT =
-  'Writeway is an online book publishing firm that specializes in making the publishing process easy and efficient for authors.';
+  'First-time authors couldn’t publish without help. I redesigned 80+ screens, and unaided task success rose from 8/32 to 32/32, with task time down 78%.';
 
 const HAMAD_TEXT =
   'A sports community app that helps adults find people, games and venues nearby, built to include everyone.';
