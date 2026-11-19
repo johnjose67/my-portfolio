@@ -48,7 +48,7 @@ const WRITEWAY_TEXT =
   'First-time authors couldn’t publish without help. I redesigned 80+ screens, and unaided task success rose from 8/32 to 32/32, with task time down 78%.';
 
 const HAMAD_TEXT =
-  'A sports community app that helps adults find people, games and venues nearby, built to include everyone.';
+  'Most adults stop playing sport not because they lose interest, but because they have no one to play with. In 5 days, I took Playmate from research to a clickable prototype that matches people, games and venues nearby, with inclusion built in from the first screen.';
 
 const TRAX_TEXT =
   'TRAX is an e-commerce app that targets e-bike enthusiasts to purchase e-bikes and customize them according to their preferences.';
